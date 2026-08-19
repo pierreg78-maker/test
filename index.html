@@ -50,15 +50,18 @@ header{display:flex;justify-content:center;align-items:center;gap:12px;padding:2
 .del-btn{position:absolute;top:6px;right:6px;width:30px;height:30px;border-radius:50%;border:none;background:var(--red);color:#fff;font-size:12px;cursor:pointer;display:none;align-items:center;justify-content:center;z-index:20;transition:all .2s}
 .del-btn:hover{background:#c0392b;transform:scale(1.1)}
 .del-btn.vis{display:flex}
-.mo{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.58);backdrop-filter:blur(5px);z-index:1000;display:none;justify-content:center;align-items:flex-start;padding:30px 12px;overflow-y:auto}
-.mo.open{display:flex}
-.modal{background:var(--modal);border:1px solid var(--border);border-radius:16px;width:540px;max-width:96vw;animation:su .28s ease;box-shadow:0 20px 60px rgba(0,0,0,.5);margin-bottom:30px}
-.m-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid var(--border)}
-.m-head h2{font-size:17px;font-weight:700}
-.m-close{width:34px;height:34px;border-radius:50%;border:none;background:transparent;color:var(--muted);font-size:17px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center}
+.mo{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.58);backdrop-filter:blur(5px);z-index:1000;display:none;overflow-y:auto}
+.mo.open{display:block}
+.modal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);background:var(--modal);border:1px solid var(--border);border-radius:16px;width:540px;max-width:96vw;max-height:88vh;overflow-y:auto;z-index:1001;animation:su .28s ease;box-shadow:0 20px 60px rgba(0,0,0,.5)}
+.modal.dragged{transform:none}
+.m-head{display:flex;justify-content:space-between;align-items:center;padding:18px 22px 14px;border-bottom:1px solid var(--border);cursor:move;user-select:none}
+.m-head:active{cursor:grabbing}
+.m-head h2{font-size:17px;font-weight:700;display:flex;align-items:center;gap:8px}
+.m-close{width:34px;height:34px;border-radius:50%;border:none;background:transparent;color:var(--muted);font-size:17px;cursor:pointer;transition:all .2s;display:flex;align-items:center;justify-content:center;flex-shrink:0}
 .m-close:hover{background:var(--border);color:var(--fg)}
 .m-body{padding:18px 22px 22px}
-.sec{margin-bottom:22px}.sec:last-child{margin-bottom:0}
+.sec{margin-bottom:22px}
+.sec:last-child{margin-bottom:0}
 .sec-label{font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:1.1px;color:var(--muted);margin-bottom:10px}
 .shape-grid{display:grid;grid-template-columns:repeat(6,1fr);gap:8px}
 .sh-btn{aspect-ratio:1;border:2px solid var(--border);border-radius:11px;background:var(--card);cursor:pointer;transition:all .2s;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;padding:6px 2px}
@@ -72,7 +75,8 @@ header{display:flex;justify-content:center;align-items:center;gap:12px;padding:2
 .c-sw{width:32px;height:32px;border-radius:50%;border:2.5px solid transparent;cursor:pointer;transition:all .18s;flex-shrink:0}
 .c-sw:hover{transform:scale(1.15)}
 .c-sw.act{box-shadow:0 0 0 2.5px var(--bg),0 0 0 4.5px var(--fg)}
-.c-sw.wh{border-color:var(--border)}.c-sw.wh.act{border-color:var(--fg)}
+.c-sw.wh{border-color:var(--border)}
+.c-sw.wh.act{border-color:var(--fg)}
 .sl-row{display:flex;align-items:center;gap:10px}
 .sl-row label{font-size:12px;color:var(--muted);min-width:82px}
 .sl-row input[type=range]{flex:1;-webkit-appearance:none;height:5px;background:var(--border);border-radius:3px;outline:none}
@@ -103,8 +107,10 @@ header{display:flex;justify-content:center;align-items:center;gap:12px;padding:2
 .btn-clr:hover{border-color:var(--red);color:var(--red)}
 .toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(70px);background:var(--card);color:var(--fg);border:1px solid var(--border);padding:10px 22px;border-radius:10px;font-size:13px;z-index:2000;transition:transform .28s ease;box-shadow:0 8px 24px rgba(0,0,0,.4);pointer-events:none}
 .toast.show{transform:translateX(-50%) translateY(0)}
-::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
-@media(max-width:560px){header{gap:8px}.btn{padding:9px 16px;font-size:13px}.shape-grid{gap:5px}.sh-btn span{font-size:8px}.sh-btn svg{width:24px;height:24px}.modal{border-radius:12px}.m-body{padding:14px 16px 18px}}
+::-webkit-scrollbar{width:5px}
+::-webkit-scrollbar-track{background:transparent}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+@media(max-width:560px){header{gap:8px}.btn{padding:9px 14px;font-size:13px}.shape-grid{gap:5px}.sh-btn span{font-size:8px}.sh-btn svg{width:24px;height:24px}.modal{border-radius:12px}.m-body{padding:14px 16px 18px}}
 </style>
 </head>
 <body>
@@ -114,7 +120,7 @@ header{display:flex;justify-content:center;align-items:center;gap:12px;padding:2
     <input type="file" id="pdfInput" accept=".pdf" hidden>
     <button class="btn btn-shapes" id="btnShapes"><i class="fas fa-shapes"></i> Ajouter des formes</button>
     <div class="dl-wrap">
-        <button class="btn btn-dl" id="btnDl" disabled><i class="fas fa-download"></i> Télécharger <i class="fas fa-caret-down" style="font-size:11px;margin-left:2px"></i></button>
+        <button class="btn btn-dl" id="btnDl" disabled><i class="fas fa-download"></i> Telecharger <i class="fas fa-caret-down" style="font-size:11px;margin-left:2px"></i></button>
         <div class="dl-menu" id="dlMenu">
             <button data-fmt="pdf"><i class="fas fa-file-pdf"></i> Document PDF complet</button>
             <button data-fmt="png"><i class="fas fa-image"></i> Page actuelle en PNG</button>
@@ -124,13 +130,13 @@ header{display:flex;justify-content:center;align-items:center;gap:12px;padding:2
 
 <div class="mode-bar" id="modeBar">
     <span id="modeTxt"></span>
-    <span class="hint">&mdash; &Eacute;chap pour annuler</span>
+    <span class="hint">&mdash; Echap pour annuler</span>
 </div>
 
-<main class="canvas-area" id="canvasArea">
+<main class="canvas-area">
     <div class="empty-state" id="emptyState">
         <i class="fas fa-book-open"></i>
-        <p>Choisissez un PDF ou ajoutez directement des formes<br>pour commencer votre cr&eacute;ation</p>
+        <p>Choisissez un PDF ou ajoutez directement des formes<br>pour commencer votre creation</p>
         <p class="sub">Les formes et le texte fonctionnent aussi sur une page blanche</p>
     </div>
     <div class="canvas-wrapper" id="cWrap">
@@ -147,11 +153,14 @@ header{display:flex;justify-content:center;align-items:center;gap:12px;padding:2
     <button class="clear-pg" id="btnClearPg"><i class="fas fa-broom"></i> Effacer cette page</button>
 </nav>
 
-<!-- Modal formes -->
 <div class="mo" id="modal">
-<div class="modal">
-    <div class="m-head">
-        <h2><i class="fas fa-shapes" style="color:var(--accent);margin-right:8px"></i>Ajouter des formes</h2>
+<div class="modal" id="modalBox">
+    <div class="m-head" id="mHead">
+        <h2>
+            <i class="fas fa-grip-vertical" style="color:var(--border);font-size:13px"></i>
+            <i class="fas fa-shapes" style="color:var(--accent)"></i>
+            Ajouter des formes
+        </h2>
         <button class="m-close" id="mClose"><i class="fas fa-times"></i></button>
     </div>
     <div class="m-body">
@@ -188,7 +197,7 @@ header{display:flex;justify-content:center;align-items:center;gap:12px;padding:2
             <div class="sec-label">Couleurs</div>
             <div class="colors" id="colorPal"></div>
         </div>
-        <div class="sec" id="optSec">
+        <div class="sec">
             <div class="sec-label">Options</div>
             <div class="sl-row">
                 <label>Taille</label>
@@ -231,40 +240,74 @@ header{display:flex;justify-content:center;align-items:center;gap:12px;padding:2
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf-lib/1.17.1/pdf-lib.min.js"></script>
 <script>
-/* ===== PDF.js worker ===== */
+/* =====================================================
+   PDF.js worker
+   ===================================================== */
 pdfjsLib.GlobalWorkerOptions.workerSrc =
     'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
-var RS = 2; /* render scale pour nettete haute resolution */
+var RS = 2;
 
-/* ===== Etat global ===== */
+/* =====================================================
+   Etat global de l'application
+   ===================================================== */
 var S = {
-    pdf: null, cur: 1, total: 0, hasContent: false, blankMode: false,
-    pages: {},
-    tool: null, placing: false, startPt: null, mousePt: null,
-    selIdx: -1,
-    color: '#000000', size: 80, stroke: 3, filled: true,
-    txt: '', font: 'Arial', fSize: 32, bold: false
+    pdf: null,
+    cur: 1,
+    total: 0,
+    hasContent: false,
+    blankMode: false,
+    pages: {},          // formes par page : { 1: [...], 2: [...] }
+    tool: null,         // outil de placement actif
+    placing: false,     // en mode placement ?
+    startPt: null,      // point de depart (ligne/fleche)
+    mousePt: null,      // position souris courante
+    selIdx: -1,         // index de la forme selectionnee
+    hoverIdx: -1,       // index de la forme survolee
+    color: '#000000',
+    size: 80,
+    stroke: 3,
+    filled: true,
+    txt: '',
+    font: 'Arial',
+    fSize: 32,
+    bold: false
 };
 
-/* ===== DOM ===== */
+/* Etat du drag/resize sur le canvas */
+var drag = { active: false, resize: false, sx: 0, sy: 0, orig: null, moved: false };
+
+/* Etat du drag de la modale */
+var mdrag = { active: false, ox: 0, oy: 0 };
+
+/* =====================================================
+   References DOM
+   ===================================================== */
 function $(id) { return document.getElementById(id); }
 var pdfC = $('pdfC'), overC = $('overC');
 var pCtx = pdfC.getContext('2d'), oCtx = overC.getContext('2d');
 var cWrap = $('cWrap'), emptyEl = $('emptyState'), navEl = $('nav');
 var modeBar = $('modeBar'), modeTxt = $('modeTxt');
 var delBtn = $('delBtn'), toastEl = $('toast');
+var modalBox = $('modalBox');
 
-/* ===== Couleurs ===== */
+/* =====================================================
+   Donnees statiques : couleurs et polices
+   ===================================================== */
 var COLORS = [
-    { n: 'Noir', v: '#000000' }, { n: 'Blanc', v: '#ffffff' },
-    { n: 'Rouge', v: '#e74c3c' }, { n: 'Orange', v: '#e8762a' },
-    { n: 'Jaune', v: '#f1c40f' }, { n: 'Vert', v: '#27ae60' },
-    { n: 'Bleu', v: '#2980b9' }, { n: 'Violet', v: '#8e44ad' },
-    { n: 'Rose', v: '#e91e8f' }, { n: 'Marron', v: '#8B4513' },
-    { n: 'Gris', v: '#7f8c8d' }, { n: 'Cyan', v: '#00acc1' }
+    { n: 'Noir', v: '#000000' },
+    { n: 'Blanc', v: '#ffffff' },
+    { n: 'Rouge', v: '#e74c3c' },
+    { n: 'Orange', v: '#e8762a' },
+    { n: 'Jaune', v: '#f1c40f' },
+    { n: 'Vert', v: '#27ae60' },
+    { n: 'Bleu', v: '#2980b9' },
+    { n: 'Violet', v: '#8e44ad' },
+    { n: 'Rose', v: '#e91e8f' },
+    { n: 'Marron', v: '#8B4513' },
+    { n: 'Gris', v: '#7f8c8d' },
+    { n: 'Cyan', v: '#00acc1' }
 ];
 
-/* ===== Polices ===== */
 var FONTS = [
     { n: 'Arial', f: 'Arial' },
     { n: 'Helvetica', f: 'Helvetica' },
@@ -296,7 +339,9 @@ var FONTS = [
     { n: 'Rubik Mono One', f: '"Rubik Mono One"' }
 ];
 
-/* ===== Init ===== */
+/* =====================================================
+   Initialisation
+   ===================================================== */
 function init() {
     buildColors();
     buildFonts();
@@ -325,108 +370,201 @@ function buildFonts() {
     var sel = $('fontSel');
     FONTS.forEach(function (f) {
         var o = document.createElement('option');
-        o.value = f.f; o.textContent = f.n;
+        o.value = f.f;
+        o.textContent = f.n;
         sel.appendChild(o);
     });
 }
 
-/* ===== Evenements ===== */
+/* =====================================================
+   Bindage de tous les evenements
+   ===================================================== */
 function bindEvents() {
-    /* Boutons principaux */
-    $('btnPdf').addEventListener('click', function () { $('pdfInput').click(); });
-    $('pdfInput').addEventListener('click', function () { this.value = ''; });
+
+    /* --- Boutons principaux --- */
+    $('btnPdf').addEventListener('click', function () {
+        $('pdfInput').value = '';
+        $('pdfInput').click();
+    });
     $('pdfInput').addEventListener('change', loadPDF);
     $('btnShapes').addEventListener('click', openShapes);
 
-    /* Modal */
+    /* --- Modal ouverture/fermeture --- */
     $('mClose').addEventListener('click', closeModal);
-    $('modal').addEventListener('click', function (e) { if (e.target === $('modal')) closeModal(); });
+    $('modal').addEventListener('click', function (e) {
+        if (e.target === $('modal')) closeModal();
+    });
 
-    /* Grille de formes */
+    /* --- Grille de formes --- */
     $('shapeGrid').addEventListener('click', function (e) {
         var btn = e.target.closest('.sh-btn');
         if (!btn) return;
         $('shapeGrid').querySelectorAll('.sh-btn').forEach(function (b) { b.classList.remove('act'); });
         btn.classList.add('act');
-        var shape = btn.dataset.shape;
-        S.tool = shape;
+        S.tool = btn.dataset.shape;
         closeModal();
-        enterPlaceMode(shape);
+        enterPlaceMode(S.tool);
     });
 
-    /* Sliders */
-    $('slSize').addEventListener('input', function (e) { S.size = +e.target.value; $('vSize').textContent = S.size; });
-    $('slStroke').addEventListener('input', function (e) { S.stroke = +e.target.value; $('vStroke').textContent = S.stroke; });
-
-    /* Toggles */
+    /* --- Sliders et toggles --- */
+    $('slSize').addEventListener('input', function (e) {
+        S.size = +e.target.value;
+        $('vSize').textContent = S.size;
+    });
+    $('slStroke').addEventListener('input', function (e) {
+        S.stroke = +e.target.value;
+        $('vStroke').textContent = S.stroke;
+    });
     $('togFill').addEventListener('click', function () {
-        this.classList.toggle('on'); S.filled = this.classList.contains('on');
+        this.classList.toggle('on');
+        S.filled = this.classList.contains('on');
     });
     $('togBold').addEventListener('click', function () {
-        this.classList.toggle('on'); S.bold = this.classList.contains('on'); updateTxtPrev();
+        this.classList.toggle('on');
+        S.bold = this.classList.contains('on');
+        updateTxtPrev();
     });
 
-    /* Texte */
-    $('txtIn').addEventListener('input', function () { S.txt = $('txtIn').value; updateTxtPrev(); });
-    $('fontSel').addEventListener('change', function () { S.font = $('fontSel').value; updateTxtPrev(); });
-    $('fsIn').addEventListener('input', function () { S.fSize = Math.max(8, +$('fsIn').value || 32); updateTxtPrev(); });
+    /* --- Texte --- */
+    $('txtIn').addEventListener('input', function () {
+        S.txt = $('txtIn').value;
+        updateTxtPrev();
+    });
+    $('fontSel').addEventListener('change', function () {
+        S.font = $('fontSel').value;
+        updateTxtPrev();
+    });
+    $('fsIn').addEventListener('input', function () {
+        S.fSize = Math.max(8, +$('fsIn').value || 32);
+        updateTxtPrev();
+    });
     $('btnInsTxt').addEventListener('click', prepareTextPlace);
-    $('btnClrTxt').addEventListener('click', function () { $('txtIn').value = ''; S.txt = ''; updateTxtPrev(); });
+    $('btnClrTxt').addEventListener('click', function () {
+        $('txtIn').value = '';
+        S.txt = '';
+        updateTxtPrev();
+    });
 
-    /* Canvas souris */
+    /* --- Canvas : mousedown sur le canvas, move/up sur le document --- */
     overC.addEventListener('mousedown', onDown);
-    overC.addEventListener('mousemove', onMove);
-    overC.addEventListener('touchstart', function (e) { e.preventDefault(); onDown(tEvt(e)); }, { passive: false });
-    overC.addEventListener('touchmove', function (e) { e.preventDefault(); onMove(tEvt(e)); }, { passive: false });
-    overC.addEventListener('touchend', function (e) { e.preventDefault(); onUp(tEvt(e)); }, { passive: false });
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+    overC.addEventListener('touchstart', function (e) {
+        e.preventDefault();
+        onDown(tEvt(e));
+    }, { passive: false });
+    document.addEventListener('touchmove', function (e) {
+        if (drag.active || S.placing) {
+            e.preventDefault();
+            onMove(tEvt(e));
+        }
+    }, { passive: false });
+    document.addEventListener('touchend', function (e) {
+        onUp(tEvt(e));
+    });
 
-    /* Navigation */
+    /* --- Navigation pages --- */
     $('btnPrev').addEventListener('click', prevPage);
     $('btnNext').addEventListener('click', nextPage);
     $('btnClearPg').addEventListener('click', clearPage);
     delBtn.addEventListener('click', deleteSelected);
     modeBar.addEventListener('click', exitPlaceMode);
 
-    /* Telecharger */
+    /* --- Telechargement --- */
     $('btnDl').addEventListener('click', function (e) {
-        e.stopPropagation(); $('dlMenu').classList.toggle('open');
+        e.stopPropagation();
+        $('dlMenu').classList.toggle('open');
     });
     document.addEventListener('click', function (e) {
         if (!e.target.closest('.dl-wrap')) $('dlMenu').classList.remove('open');
     });
-    var dlBtns = $('dlMenu').querySelectorAll('button');
-    dlBtns.forEach(function (b) {
+    $('dlMenu').querySelectorAll('button').forEach(function (b) {
         b.addEventListener('click', function () {
             $('dlMenu').classList.remove('open');
-            if (b.dataset.fmt === 'pdf') downloadPDF();
-            else downloadPNG();
+            b.dataset.fmt === 'pdf' ? downloadPDF() : downloadPNG();
         });
     });
 
-    /* Clavier */
+    /* --- Clavier --- */
     document.addEventListener('keydown', function (e) {
         var tag = document.activeElement.tagName;
         if (e.key === 'Escape') {
             if ($('modal').classList.contains('open')) closeModal();
             else exitPlaceMode();
         }
-        if ((e.key === 'Delete' || e.key === 'Backspace') && S.selIdx >= 0
-            && !$('modal').classList.contains('open')
-            && tag !== 'TEXTAREA' && tag !== 'INPUT') {
-            deleteSelected(); e.preventDefault();
+        if ((e.key === 'Delete' || e.key === 'Backspace') &&
+            S.selIdx >= 0 &&
+            !$('modal').classList.contains('open') &&
+            tag !== 'TEXTAREA' && tag !== 'INPUT') {
+            deleteSelected();
+            e.preventDefault();
         }
-        if (e.ctrlKey && e.key === 'z') { undo(); e.preventDefault(); }
+        if (e.ctrlKey && e.key === 'z') {
+            undo();
+            e.preventDefault();
+        }
     });
 
-    window.addEventListener('resize', function () { if (S.hasContent) updateDisplay(); });
+    /* --- Drag de la modale --- */
+    $('mHead').addEventListener('mousedown', modalDown);
+    $('mHead').addEventListener('touchstart', function (e) {
+        if (!e.target.closest('.m-close')) modalDown(tEvt(e));
+    }, { passive: false });
+    document.addEventListener('mousemove', modalMove);
+    document.addEventListener('touchmove', function (e) {
+        if (mdrag.active) {
+            e.preventDefault();
+            modalMove(tEvt(e));
+        }
+    }, { passive: false });
+    document.addEventListener('mouseup', modalUp);
+    document.addEventListener('touchend', modalUp);
+
+    /* --- Redimensionnement fenetre --- */
+    window.addEventListener('resize', function () {
+        if (S.hasContent) updateDisplay();
+    });
 }
 
+/* Conversion evenement touch */
 function tEvt(e) {
-    var t = (e.changedTouches && e.changedTouches[0]) || (e.touches && e.touches[0]);
-    return t || e;
+    return (e.changedTouches && e.changedTouches[0]) ||
+           (e.touches && e.touches[0]) || e;
 }
 
-/* ===== Chargement PDF ===== */
+/* =====================================================
+   Drag de la modale
+   ===================================================== */
+function modalDown(e) {
+    if (e.target.closest('.m-close')) return;
+    mdrag.active = true;
+    /* Premier drag : convertir le centrage CSS en position absolue */
+    if (!modalBox.classList.contains('dragged')) {
+        var r = modalBox.getBoundingClientRect();
+        modalBox.classList.add('dragged');
+        modalBox.style.left = r.left + 'px';
+        modalBox.style.top = r.top + 'px';
+    }
+    var r2 = modalBox.getBoundingClientRect();
+    mdrag.ox = e.clientX - r2.left;
+    mdrag.oy = e.clientY - r2.top;
+}
+
+function modalMove(e) {
+    if (!mdrag.active) return;
+    var x = Math.max(0, Math.min(window.innerWidth - 60, e.clientX - mdrag.ox));
+    var y = Math.max(0, Math.min(window.innerHeight - 40, e.clientY - mdrag.oy));
+    modalBox.style.left = x + 'px';
+    modalBox.style.top = y + 'px';
+}
+
+function modalUp() {
+    mdrag.active = false;
+}
+
+/* =====================================================
+   Chargement PDF
+   ===================================================== */
 function loadPDF(e) {
     var file = e.target.files[0];
     if (!file) return;
@@ -435,12 +573,19 @@ function loadPDF(e) {
         try {
             S.pdf = await pdfjsLib.getDocument({ data: new Uint8Array(ev.target.result) }).promise;
             S.total = S.pdf.numPages;
-            S.cur = 1; S.blankMode = false; S.pages = {}; S.hasContent = true;
+            S.cur = 1;
+            S.blankMode = false;
+            S.pages = {};
+            S.hasContent = true;
             showCanvas();
             await renderPage(S.cur);
-            updNav(); enableDl();
+            updNav();
+            enableDl();
             toast('PDF charge : ' + S.total + ' page(s)');
-        } catch (err) { toast('Erreur lors du chargement du PDF'); console.error(err); }
+        } catch (err) {
+            toast('Erreur de chargement du PDF');
+            console.error(err);
+        }
     };
     reader.readAsArrayBuffer(file);
 }
@@ -448,24 +593,41 @@ function loadPDF(e) {
 async function renderPage(n) {
     var page = await S.pdf.getPage(n);
     var vp = page.getViewport({ scale: RS });
-    pdfC.width = vp.width; pdfC.height = vp.height;
-    overC.width = vp.width; overC.height = vp.height;
+    pdfC.width = vp.width;
+    pdfC.height = vp.height;
+    overC.width = vp.width;
+    overC.height = vp.height;
     await page.render({ canvasContext: pCtx, viewport: vp }).promise;
-    updateDisplay(); drawOverlay();
+    updateDisplay();
+    drawOverlay();
 }
 
-/* ===== Page blanche (sans PDF) ===== */
+/* =====================================================
+   Page blanche (mode sans PDF)
+   ===================================================== */
 function initBlank() {
-    S.blankMode = true; S.pdf = null; S.total = 1; S.cur = 1;
-    S.pages = {}; S.hasContent = true;
-    pdfC.width = 1190; pdfC.height = 1684;
-    overC.width = 1190; overC.height = 1684;
+    S.blankMode = true;
+    S.pdf = null;
+    S.total = 1;
+    S.cur = 1;
+    S.pages = {};
+    S.hasContent = true;
+    pdfC.width = 1190;
+    pdfC.height = 1684;
+    overC.width = 1190;
+    overC.height = 1684;
     pCtx.fillStyle = '#ffffff';
     pCtx.fillRect(0, 0, 1190, 1684);
-    showCanvas(); updateDisplay(); drawOverlay(); updNav(); enableDl();
+    showCanvas();
+    updateDisplay();
+    drawOverlay();
+    updNav();
+    enableDl();
 }
 
-/* ===== Affichage ===== */
+/* =====================================================
+   Affichage et navigation
+   ===================================================== */
 function showCanvas() {
     emptyEl.style.display = 'none';
     cWrap.style.display = 'block';
@@ -479,9 +641,12 @@ function updateDisplay() {
     var dw, dh;
     if (maxW / maxH > r) { dh = maxH; dw = dh * r; }
     else { dw = maxW; dh = dw / r; }
-    cWrap.style.width = dw + 'px'; cWrap.style.height = dh + 'px';
-    pdfC.style.width = dw + 'px'; pdfC.style.height = dh + 'px';
-    overC.style.width = dw + 'px'; overC.style.height = dh + 'px';
+    cWrap.style.width = dw + 'px';
+    cWrap.style.height = dh + 'px';
+    pdfC.style.width = dw + 'px';
+    pdfC.style.height = dh + 'px';
+    overC.style.width = dw + 'px';
+    overC.style.height = dh + 'px';
 }
 
 function updNav() {
@@ -490,29 +655,47 @@ function updNav() {
     $('btnNext').disabled = S.cur >= S.total;
 }
 
-function enableDl() { $('btnDl').disabled = false; }
+function enableDl() {
+    $('btnDl').disabled = false;
+}
 
-/* ===== Navigation ===== */
 async function prevPage() {
     if (S.cur <= 1) return;
-    S.cur--; exitPlaceMode(); S.selIdx = -1; delBtn.classList.remove('vis');
-    if (S.pdf) await renderPage(S.cur); else { drawOverlay(); updNav(); }
+    S.cur--;
+    exitPlaceMode();
+    S.selIdx = -1;
+    S.hoverIdx = -1;
+    delBtn.classList.remove('vis');
+    if (S.pdf) await renderPage(S.cur);
+    else drawOverlay();
     updNav();
 }
+
 async function nextPage() {
     if (S.cur >= S.total) return;
-    S.cur++; exitPlaceMode(); S.selIdx = -1; delBtn.classList.remove('vis');
-    if (S.pdf) await renderPage(S.cur); else { drawOverlay(); updNav(); }
+    S.cur++;
+    exitPlaceMode();
+    S.selIdx = -1;
+    S.hoverIdx = -1;
+    delBtn.classList.remove('vis');
+    if (S.pdf) await renderPage(S.cur);
+    else drawOverlay();
     updNav();
 }
 
 function clearPage() {
-    if (!S.pages[S.cur] || S.pages[S.cur].length === 0) return;
-    S.pages[S.cur] = []; S.selIdx = -1; delBtn.classList.remove('vis');
-    drawOverlay(); toast('Formes effacees');
+    if (!S.pages[S.cur] || !S.pages[S.cur].length) return;
+    S.pages[S.cur] = [];
+    S.selIdx = -1;
+    S.hoverIdx = -1;
+    delBtn.classList.remove('vis');
+    drawOverlay();
+    toast('Formes effacees');
 }
 
-/* ===== Coordonnees souris vers canvas ===== */
+/* =====================================================
+   Coordonnees souris/touch vers canvas
+   ===================================================== */
 function coords(e) {
     var r = overC.getBoundingClientRect();
     return {
@@ -521,47 +704,100 @@ function coords(e) {
     };
 }
 
-/* ===== Mode placement ===== */
+/* =====================================================
+   Mode placement (formes)
+   ===================================================== */
 function enterPlaceMode(tool) {
     exitPlaceMode();
-    S.tool = tool; S.placing = true; S.selIdx = -1; delBtn.classList.remove('vis');
-    var labels = { circle: 'Cercle', line: 'Droite', triangle: 'Triangle', rectangle: 'Rectangle', star: 'Etoile', arrow: 'Fleche', text: 'Texte' };
-    var hint = (tool === 'line' || tool === 'arrow') ? 'Cliquez le point de depart' : 'Cliquez pour placer';
-    modeTxt.textContent = (labels[tool] || tool) + ' \u2014 ' + hint;
+    S.tool = tool;
+    S.placing = true;
+    S.selIdx = -1;
+    S.hoverIdx = -1;
+    delBtn.classList.remove('vis');
+    var lb = {
+        circle: 'Cercle', line: 'Droite', triangle: 'Triangle',
+        rectangle: 'Rectangle', star: 'Etoile', arrow: 'Fleche', text: 'Texte'
+    };
+    var ht = (tool === 'line' || tool === 'arrow')
+        ? 'Cliquez le point de depart'
+        : 'Cliquez pour placer';
+    modeTxt.textContent = (lb[tool] || tool) + ' \u2014 ' + ht;
     modeBar.classList.add('visible');
     overC.style.cursor = 'crosshair';
 }
 
 function exitPlaceMode() {
-    S.placing = false; S.tool = null; S.startPt = null; S.mousePt = null;
+    S.placing = false;
+    S.tool = null;
+    S.startPt = null;
+    S.mousePt = null;
     modeBar.classList.remove('visible');
     overC.style.cursor = 'default';
-    $('shapeGrid').querySelectorAll('.sh-btn').forEach(function (b) { b.classList.remove('act'); });
+    $('shapeGrid').querySelectorAll('.sh-btn').forEach(function (b) {
+        b.classList.remove('act');
+    });
     drawOverlay();
 }
 
-/* ===== Souris / touch canvas ===== */
+/* =====================================================
+   Poignee de redimensionnement
+   ===================================================== */
+var HANDLE = 12;
+var HPAD = 6;
+
+function handlePos(sh) {
+    if (!sh) return null;
+    var b = getBounds(sh);
+    if (!b) return null;
+    return { x: b.x + b.w + HPAD, y: b.y + b.h + HPAD };
+}
+
+function hitHandle(px, py) {
+    if (S.selIdx < 0) return false;
+    var arr = S.pages[S.cur] || [];
+    var sh = arr[S.selIdx];
+    if (!sh) return false;
+    /* Pas de poignee pour ligne/fleche */
+    if (sh.type === 'line' || sh.type === 'arrow') return false;
+    var h = handlePos(sh);
+    if (!h) return false;
+    return px >= h.x - HANDLE / 2 && px <= h.x + HANDLE / 2 &&
+           py >= h.y - HANDLE / 2 && py <= h.y + HANDLE / 2;
+}
+
+/* =====================================================
+   Canvas : evenements souris/touch
+   ===================================================== */
 function onDown(e) {
     if (!S.hasContent) return;
     var p = coords(e);
     var sf = overC.width / overC.clientWidth;
 
-    /* Mode placement */
+    /* ---- Mode placement actif ---- */
     if (S.placing && S.tool) {
+
         if (S.tool === 'line' || S.tool === 'arrow') {
             if (!S.startPt) {
-                S.startPt = p; S.mousePt = p;
-                modeTxt.textContent = (S.tool === 'arrow' ? 'Fleche' : 'Droite') + ' \u2014 Cliquez le point d\'arrivee';
+                S.startPt = p;
+                S.mousePt = p;
+                modeTxt.textContent = (S.tool === 'arrow' ? 'Fleche' : 'Droite') +
+                    " \u2014 Cliquez le point d'arrivee";
             } else {
                 addShape({
-                    type: S.tool, x1: S.startPt.x, y1: S.startPt.y, x2: p.x, y2: p.y,
-                    color: S.color, strokeWidth: S.stroke * sf
+                    type: S.tool,
+                    x1: S.startPt.x, y1: S.startPt.y,
+                    x2: p.x, y2: p.y,
+                    color: S.color,
+                    strokeWidth: S.stroke * sf
                 });
                 exitPlaceMode();
             }
         } else if (S.tool === 'text') {
-            /* Placer le texte au point clique */
-            if (!S.txt.trim()) { toast('Saisissez du texte dans la modale d\'abord'); exitPlaceMode(); return; }
+            if (!S.txt.trim()) {
+                toast('Saisissez du texte dans la modale d\'abord');
+                exitPlaceMode();
+                return;
+            }
             addShape({
                 type: 'text', x: p.x, y: p.y,
                 text: S.txt, font: S.font,
@@ -574,27 +810,91 @@ function onDown(e) {
         } else {
             addShape({
                 type: S.tool, x: p.x, y: p.y,
-                size: S.size * sf, color: S.color,
-                strokeWidth: S.stroke * sf, filled: S.filled
+                size: S.size * sf,
+                color: S.color,
+                strokeWidth: S.stroke * sf,
+                filled: S.filled
             });
             exitPlaceMode();
         }
         return;
     }
 
-    /* Mode selection */
+    /* ---- Poignee de resize ---- */
+    if (hitHandle(p.x, p.y)) {
+        var arrR = S.pages[S.cur] || [];
+        drag = {
+            active: true, resize: true,
+            sx: p.x, sy: p.y,
+            orig: JSON.parse(JSON.stringify(arrR[S.selIdx])),
+            moved: true
+        };
+        overC.style.cursor = 'nwse-resize';
+        return;
+    }
+
+    /* ---- Selection / debut de drag ---- */
     var idx = hitTest(p.x, p.y);
-    if (idx >= 0) { S.selIdx = idx; delBtn.classList.add('vis'); }
-    else { S.selIdx = -1; delBtn.classList.remove('vis'); }
+    if (idx >= 0) {
+        S.selIdx = idx;
+        delBtn.classList.add('vis');
+        var arrD = S.pages[S.cur] || [];
+        drag = {
+            active: true, resize: false,
+            sx: p.x, sy: p.y,
+            orig: JSON.parse(JSON.stringify(arrD[idx])),
+            moved: false
+        };
+        overC.style.cursor = 'grabbing';
+    } else {
+        S.selIdx = -1;
+        delBtn.classList.remove('vis');
+    }
     drawOverlay();
 }
 
 function onMove(e) {
     if (!S.hasContent) return;
-    var p = coords(e);
-    S.mousePt = p;
 
+    /* ---- Drag ou resize en cours ---- */
+    if (drag.active && drag.orig) {
+        var p = coords(e);
+        var dx = p.x - drag.sx;
+        var dy = p.y - drag.sy;
+        var arr = S.pages[S.cur] || [];
+        var sh = arr[S.selIdx];
+        if (!sh) return;
+        var o = drag.orig;
+
+        if (drag.resize) {
+            /* Redimensionner */
+            var dist = Math.sqrt(dx * dx + dy * dy);
+            if (sh.type === 'text') {
+                sh.fontSize = Math.max(8, o.fontSize + dist * 0.5);
+            } else {
+                sh.size = Math.max(10, o.size + dist * 0.8);
+            }
+        } else {
+            /* Deplacer */
+            if (Math.abs(dx) > 2 || Math.abs(dy) > 2) drag.moved = true;
+            if (sh.type === 'line' || sh.type === 'arrow') {
+                sh.x1 = o.x1 + dx;
+                sh.y1 = o.y1 + dy;
+                sh.x2 = o.x2 + dx;
+                sh.y2 = o.y2 + dy;
+            } else {
+                sh.x = o.x + dx;
+                sh.y = o.y + dy;
+            }
+        }
+        drawOverlay();
+        return;
+    }
+
+    /* ---- Preview ligne/fleche en cours de placement ---- */
     if (S.placing && S.startPt && (S.tool === 'line' || S.tool === 'arrow')) {
+        var p2 = coords(e);
+        S.mousePt = p2;
         drawOverlay();
         var sf = overC.width / overC.clientWidth;
         oCtx.save();
@@ -604,53 +904,99 @@ function onMove(e) {
         oCtx.setLineDash([6, 4]);
         oCtx.beginPath();
         oCtx.moveTo(S.startPt.x, S.startPt.y);
-        oCtx.lineTo(p.x, p.y);
+        oCtx.lineTo(p2.x, p2.y);
         oCtx.stroke();
-        if (S.tool === 'arrow') drawArrowHead(oCtx, S.startPt.x, S.startPt.y, p.x, p.y, S.stroke * sf, S.color);
+        if (S.tool === 'arrow') {
+            drawArrowHead(oCtx, S.startPt.x, S.startPt.y, p2.x, p2.y, S.stroke * sf, S.color);
+        }
         oCtx.restore();
+        return;
+    }
+
+    /* ---- Hover hors placement ---- */
+    if (!S.placing) {
+        var rect = overC.getBoundingClientRect();
+        var inside = e.clientX >= rect.left && e.clientX <= rect.right &&
+                     e.clientY >= rect.top && e.clientY <= rect.bottom;
+        if (!inside) {
+            if (S.hoverIdx !== -1) { S.hoverIdx = -1; drawOverlay(); }
+            overC.style.cursor = 'default';
+            return;
+        }
+        var p3 = coords(e);
+        if (hitHandle(p3.x, p3.y)) {
+            overC.style.cursor = 'nwse-resize';
+            return;
+        }
+        var hi = hitTest(p3.x, p3.y);
+        if (hi !== S.hoverIdx) { S.hoverIdx = hi; drawOverlay(); }
+        overC.style.cursor = hi >= 0 ? 'grab' : 'default';
     }
 }
 
-function onUp() { /* pas utilise */ }
+function onUp() {
+    if (drag.active) {
+        drag = { active: false, resize: false, sx: 0, sy: 0, orig: null, moved: false };
+        overC.style.cursor = S.selIdx >= 0 ? 'grab' : 'default';
+    }
+}
 
-/* ===== Formes : ajout / suppression / annulation ===== */
-function addShape(shape) {
+/* =====================================================
+   Operations sur les formes
+   ===================================================== */
+function addShape(sh) {
     if (!S.pages[S.cur]) S.pages[S.cur] = [];
-    S.pages[S.cur].push(shape);
-    drawOverlay(); enableDl();
+    S.pages[S.cur].push(sh);
+    drawOverlay();
+    enableDl();
 }
 
 function deleteSelected() {
     var arr = S.pages[S.cur];
     if (!arr || S.selIdx < 0 || S.selIdx >= arr.length) return;
     arr.splice(S.selIdx, 1);
-    S.selIdx = -1; delBtn.classList.remove('vis');
+    S.selIdx = -1;
+    S.hoverIdx = -1;
+    delBtn.classList.remove('vis');
     drawOverlay();
 }
 
 function undo() {
     var arr = S.pages[S.cur];
-    if (!arr || arr.length === 0) return;
-    arr.pop(); S.selIdx = -1; delBtn.classList.remove('vis');
-    drawOverlay(); toast('Action annulee');
+    if (!arr || !arr.length) return;
+    arr.pop();
+    S.selIdx = -1;
+    S.hoverIdx = -1;
+    delBtn.classList.remove('vis');
+    drawOverlay();
+    toast('Action annulee');
 }
 
-/* ===== Preparation texte : ouvrir modale en mode placement texte ===== */
+/* =====================================================
+   Preparation du placement de texte
+   ===================================================== */
 function prepareTextPlace() {
-    if (!S.txt.trim()) { toast('Saisissez du texte d\'abord'); return; }
+    if (!S.txt.trim()) {
+        toast('Saisissez du texte d\'abord');
+        return;
+    }
     if (!S.hasContent) initBlank();
     closeModal();
     enterPlaceMode('text');
 }
 
-/* ===== Dessin overlay ===== */
+/* =====================================================
+   Dessin de l'overlay (formes + selection + hover)
+   ===================================================== */
 function drawOverlay() {
     oCtx.clearRect(0, 0, overC.width, overC.height);
     var arr = S.pages[S.cur] || [];
-    arr.forEach(function (sh, i) { drawShape(oCtx, sh, i === S.selIdx); });
+    arr.forEach(function (sh, i) {
+        drawShape(oCtx, sh, i === S.selIdx, i === S.hoverIdx && i !== S.selIdx);
+    });
 }
 
-function drawShape(ctx, sh, sel) {
+function drawShape(ctx, sh, sel, hov) {
     ctx.save();
     ctx.strokeStyle = sh.color;
     ctx.fillStyle = sh.color;
@@ -661,7 +1007,8 @@ function drawShape(ctx, sh, sel) {
     switch (sh.type) {
         case 'circle': {
             var cr = Math.max(1, sh.size / 2);
-            ctx.beginPath(); ctx.arc(sh.x, sh.y, cr, 0, Math.PI * 2);
+            ctx.beginPath();
+            ctx.arc(sh.x, sh.y, cr, 0, Math.PI * 2);
             sh.filled ? ctx.fill() : ctx.stroke();
             break;
         }
@@ -681,40 +1028,84 @@ function drawShape(ctx, sh, sel) {
             sh.filled ? ctx.fill() : ctx.stroke();
             break;
         }
-        case 'star': drawStar(ctx, sh.x, sh.y, sh.size, sh.filled); break;
+        case 'star':
+            drawStar(ctx, sh.x, sh.y, sh.size, sh.filled);
+            break;
         case 'line':
-            ctx.beginPath(); ctx.moveTo(sh.x1, sh.y1); ctx.lineTo(sh.x2, sh.y2); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(sh.x1, sh.y1);
+            ctx.lineTo(sh.x2, sh.y2);
+            ctx.stroke();
             break;
         case 'arrow':
-            ctx.beginPath(); ctx.moveTo(sh.x1, sh.y1); ctx.lineTo(sh.x2, sh.y2); ctx.stroke();
+            ctx.beginPath();
+            ctx.moveTo(sh.x1, sh.y1);
+            ctx.lineTo(sh.x2, sh.y2);
+            ctx.stroke();
             drawArrowHead(ctx, sh.x1, sh.y1, sh.x2, sh.y2, sh.strokeWidth, sh.color);
             break;
         case 'text': {
             ctx.font = (sh.fontWeight || 'normal') + ' ' + sh.fontSize + 'px ' + sh.font + ',sans-serif';
-            ctx.fillStyle = sh.color; ctx.textBaseline = 'top';
+            ctx.fillStyle = sh.color;
+            ctx.textBaseline = 'top';
             var lines = sh.text.split('\n');
             var lh = sh.fontSize * 1.3;
-            lines.forEach(function (l, i) { ctx.fillText(l, sh.x, sh.y + i * lh); });
+            lines.forEach(function (l, i) {
+                ctx.fillText(l, sh.x, sh.y + i * lh);
+            });
             break;
         }
     }
 
-    /* Encadre de selection */
-    if (sel) {
+    /* Leger halo au survol */
+    if (hov) {
         var b = getBounds(sh);
         if (b) {
-            ctx.setLineDash([5, 4]); ctx.strokeStyle = '#e8762a'; ctx.lineWidth = 2;
-            ctx.strokeRect(b.x - 6, b.y - 6, b.w + 12, b.h + 12);
+            ctx.strokeStyle = 'rgba(232,118,42,0.35)';
+            ctx.lineWidth = 1.5;
+            ctx.setLineDash([]);
+            ctx.strokeRect(b.x - 4, b.y - 4, b.w + 8, b.h + 8);
+        }
+    }
+
+    /* Selection + poignee de resize */
+    if (sel) {
+        var b2 = getBounds(sh);
+        if (b2) {
+            ctx.setLineDash([5, 4]);
+            ctx.strokeStyle = '#e8762a';
+            ctx.lineWidth = 2;
+            ctx.strokeRect(b2.x - HPAD, b2.y - HPAD, b2.w + HPAD * 2, b2.h + HPAD * 2);
+            ctx.setLineDash([]);
+
+            /* Poignee (sauf ligne/fleche) */
+            if (sh.type !== 'line' && sh.type !== 'arrow') {
+                var hx = b2.x + b2.w + HPAD;
+                var hy = b2.y + b2.h + HPAD;
+                ctx.fillStyle = '#ffffff';
+                ctx.strokeStyle = '#e8762a';
+                ctx.lineWidth = 2;
+                ctx.fillRect(hx - HANDLE / 2, hy - HANDLE / 2, HANDLE, HANDLE);
+                ctx.strokeRect(hx - HANDLE / 2, hy - HANDLE / 2, HANDLE, HANDLE);
+                /* Lignes diagonales dans la poignee */
+                ctx.strokeStyle = '#aaa';
+                ctx.lineWidth = 1;
+                ctx.beginPath();
+                ctx.moveTo(hx - 3, hy + 3); ctx.lineTo(hx + 3, hy - 3);
+                ctx.moveTo(hx - 3, hy - 1); ctx.lineTo(hx - 1, hy - 3);
+                ctx.moveTo(hx + 1, hy + 3); ctx.lineTo(hx + 3, hy + 1);
+                ctx.stroke();
+            }
         }
     }
     ctx.restore();
 }
 
 function drawStar(ctx, cx, cy, size, filled) {
-    var or2 = Math.max(1, size / 2), ir = or2 * 0.4;
+    var or = Math.max(1, size / 2), ir = or * 0.4;
     ctx.beginPath();
     for (var i = 0; i < 10; i++) {
-        var r = i % 2 === 0 ? or2 : ir;
+        var r = i % 2 === 0 ? or : ir;
         var a = Math.PI / 5 * i - Math.PI / 2;
         var x = cx + r * Math.cos(a), y = cy + r * Math.sin(a);
         i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
@@ -726,51 +1117,73 @@ function drawStar(ctx, cx, cy, size, filled) {
 function drawArrowHead(ctx, x1, y1, x2, y2, sw, color) {
     var hl = Math.max(12, sw * 5);
     var a = Math.atan2(y2 - y1, x2 - x1);
-    ctx.save(); ctx.fillStyle = color;
-    ctx.beginPath(); ctx.moveTo(x2, y2);
+    ctx.save();
+    ctx.fillStyle = color;
+    ctx.beginPath();
+    ctx.moveTo(x2, y2);
     ctx.lineTo(x2 - hl * Math.cos(a - Math.PI / 7), y2 - hl * Math.sin(a - Math.PI / 7));
     ctx.lineTo(x2 - hl * Math.cos(a + Math.PI / 7), y2 - hl * Math.sin(a + Math.PI / 7));
-    ctx.closePath(); ctx.fill(); ctx.restore();
+    ctx.closePath();
+    ctx.fill();
+    ctx.restore();
 }
 
-/* ===== Bounds pour hit test ===== */
+/* =====================================================
+   Calcul des bounds (pour hit test et selection)
+   ===================================================== */
 function getBounds(sh) {
     if (sh.type === 'text') {
         oCtx.font = (sh.fontWeight || 'normal') + ' ' + sh.fontSize + 'px ' + sh.font + ',sans-serif';
         var lines = sh.text.split('\n'), mx = 0;
-        lines.forEach(function (l) { var w = oCtx.measureText(l).width; if (w > mx) mx = w; });
+        lines.forEach(function (l) {
+            var w = oCtx.measureText(l).width;
+            if (w > mx) mx = w;
+        });
         return { x: sh.x, y: sh.y, w: mx, h: lines.length * sh.fontSize * 1.3 };
     }
     if (sh.type === 'line' || sh.type === 'arrow') {
         var bx = Math.min(sh.x1, sh.x2), by = Math.min(sh.y1, sh.y2);
         return { x: bx, y: by, w: Math.abs(sh.x2 - sh.x1) || 4, h: Math.abs(sh.y2 - sh.y1) || 4 };
     }
-    if (sh.type === 'rectangle') return { x: sh.x - sh.size / 2, y: sh.y - sh.size * 0.35, w: sh.size, h: sh.size * 0.7 };
+    if (sh.type === 'rectangle') {
+        return { x: sh.x - sh.size / 2, y: sh.y - sh.size * 0.35, w: sh.size, h: sh.size * 0.7 };
+    }
     var hs = sh.size / 2;
     return { x: sh.x - hs, y: sh.y - hs, w: sh.size, h: sh.size };
 }
 
-/* ===== Hit test ===== */
+/* =====================================================
+   Hit test (quelle forme est sous le curseur ?)
+   ===================================================== */
 function hitTest(px, py) {
     var arr = S.pages[S.cur] || [];
     for (var i = arr.length - 1; i >= 0; i--) {
         var b = getBounds(arr[i]);
         if (!b) continue;
         var pad = 10;
-        if (px >= b.x - pad && px <= b.x + b.w + pad && py >= b.y - pad && py <= b.y + b.h + pad) return i;
+        if (px >= b.x - pad && px <= b.x + b.w + pad &&
+            py >= b.y - pad && py <= b.y + b.h + pad) return i;
     }
     return -1;
 }
 
-/* ===== Modal ===== */
+/* =====================================================
+   Modal : ouverture / fermeture / apercu texte
+   ===================================================== */
 function openShapes() {
     if (!S.hasContent) initBlank();
     exitPlaceMode();
+    /* Re-centrer la modale si elle avait ete deplacee */
+    modalBox.classList.remove('dragged');
+    modalBox.style.left = '';
+    modalBox.style.top = '';
     $('modal').classList.add('open');
     updateTxtPrev();
 }
 
-function closeModal() { $('modal').classList.remove('open'); }
+function closeModal() {
+    $('modal').classList.remove('open');
+}
 
 function updateTxtPrev() {
     var prev = $('txtPrev');
@@ -783,9 +1196,11 @@ function updateTxtPrev() {
     prev.classList.toggle('has-text', !!S.txt.trim());
 }
 
-/* ===== Telechargement PDF ===== */
+/* =====================================================
+   Telechargement PDF (via pdf-lib)
+   ===================================================== */
 async function downloadPDF() {
-    toast('Generation du PDF en cours...');
+    toast('Generation du PDF...');
     try {
         var PDFDocument = PDFLib.PDFDocument;
         var np = await PDFDocument.create();
@@ -798,16 +1213,21 @@ async function downloadPDF() {
             if (S.pdf) {
                 var pg = await S.pdf.getPage(i);
                 var vp = pg.getViewport({ scale: RS });
-                tc.width = vp.width; tc.height = vp.height;
+                tc.width = vp.width;
+                tc.height = vp.height;
                 await pg.render({ canvasContext: tx, viewport: vp }).promise;
             } else {
-                tc.width = 1190; tc.height = 1684;
-                tx.fillStyle = '#ffffff'; tx.fillRect(0, 0, 1190, 1684);
+                tc.width = 1190;
+                tc.height = 1684;
+                tx.fillStyle = '#ffffff';
+                tx.fillRect(0, 0, 1190, 1684);
             }
 
+            /* Dessiner les formes de cette page */
             var shapes = S.pages[i] || [];
-            shapes.forEach(function (sh) { drawShape(tx, sh, false); });
+            shapes.forEach(function (sh) { drawShape(tx, sh, false, false); });
 
+            /* Convertir en image et inserer dans le PDF */
             var url = tc.toDataURL('image/png');
             var raw = atob(url.split(',')[1]);
             var bytes = new Uint8Array(raw.length);
@@ -820,30 +1240,40 @@ async function downloadPDF() {
         var pdfBytes = await np.save();
         dlBlob(new Blob([pdfBytes], { type: 'application/pdf' }), 'flipbook_modifie.pdf');
         toast('PDF telecharge !');
-    } catch (err) { console.error(err); toast('Erreur lors de la generation du PDF'); }
+    } catch (err) {
+        console.error(err);
+        toast('Erreur de generation PDF');
+    }
 }
 
-/* ===== Telechargement PNG ===== */
+/* =====================================================
+   Telechargement PNG (page courante)
+   ===================================================== */
 function downloadPNG() {
     var mc = document.createElement('canvas');
-    mc.width = pdfC.width; mc.height = pdfC.height;
+    mc.width = pdfC.width;
+    mc.height = pdfC.height;
     var mx = mc.getContext('2d');
     mx.drawImage(pdfC, 0, 0);
     mx.drawImage(overC, 0, 0);
     mc.toBlob(function (blob) {
         dlBlob(blob, 'page_' + S.cur + '.png');
-        toast('Image PNG telechargee !');
+        toast('PNG telecharge !');
     }, 'image/png');
 }
 
 function dlBlob(blob, name) {
     var u = URL.createObjectURL(blob);
     var a = document.createElement('a');
-    a.href = u; a.download = name; a.click();
+    a.href = u;
+    a.download = name;
+    a.click();
     URL.revokeObjectURL(u);
 }
 
-/* ===== Toast ===== */
+/* =====================================================
+   Toast (notifications)
+   ===================================================== */
 var toastTimer;
 function toast(msg) {
     clearTimeout(toastTimer);
@@ -852,7 +1282,9 @@ function toast(msg) {
     toastTimer = setTimeout(function () { toastEl.classList.remove('show'); }, 2600);
 }
 
-/* ===== Demarrage ===== */
+/* =====================================================
+   Demarrage
+   ===================================================== */
 init();
 </script>
 </body>
