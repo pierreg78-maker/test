@@ -1,0 +1,43 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --font-sans: "DM Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Playfair Display", Georgia, serif;
+  --font-mono: "DM Mono", ui-monospace, monospace;
+  --color-background: oklch(0.97 0.009 90);
+  --color-foreground: oklch(0.25 0.032 160);
+  --color-card: oklch(0.99 0.005 90);
+  --color-card-foreground: oklch(0.25 0.032 160);
+  --color-popover: oklch(0.99 0.005 90);
+  --color-popover-foreground: oklch(0.25 0.032 160);
+  --color-primary: oklch(0.32 0.07 160);
+  --color-primary-foreground: oklch(0.98 0.01 90);
+  --color-secondary: oklch(0.93 0.02 95);
+  --color-secondary-foreground: oklch(0.3 0.04 160);
+  --color-muted: oklch(0.93 0.016 90);
+  --color-muted-foreground: oklch(0.5 0.02 160);
+  --color-accent: oklch(0.9 0.035 90);
+  --color-accent-foreground: oklch(0.3 0.04 160);
+  --color-destructive: oklch(0.56 0.2 28);
+  --color-destructive-foreground: oklch(0.98 0.01 90);
+  --color-border: oklch(0.88 0.016 90);
+  --color-input: oklch(0.88 0.016 90);
+  --color-ring: oklch(0.55 0.08 160);
+  --radius: 0.75rem;
+}
+
+@layer base {
+  * { @apply border-border; }
+  html { font-feature-settings: "kern" 1, "liga" 1; }
+  body { @apply bg-background text-foreground font-sans antialiased; }
+  button, a, input { -webkit-tap-highlight-color: transparent; }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  main > section { animation: rise-in 500ms cubic-bezier(0.23, 1, 0.32, 1) both; }
+  main > section:nth-child(2) { animation-delay: 70ms; }
+  @keyframes rise-in { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+}
