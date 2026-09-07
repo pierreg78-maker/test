@@ -720,26 +720,27 @@
 
             {/* ─── Contrôles du métronome : tempo, sonorité, volume ─── */}
             <div className="mt-3 flex items-center justify-center gap-2">
-              <input
-                className="bpm-box"
-                type="number"
-                min="30"
-                max="250"
-                value={bpm}
-                onChange={(e) => {
-                  const raw = e.target.value;
-                  if (raw === "") {
-                    setBpm("");
-                    return;
-                  }
-                  clampBpm(raw);
-                }}
-                onBlur={() => {
-                  if (!bpm) setBpm(60);
-                }}
-                inputMode="numeric"
-                aria-label="Tempo en battements par minute"
-              />
+             <input
+                    className="bpm-box"
+                    type="number"
+                    min="30"
+                    max="250"
+                    value={bpm}
+                    onChange={(e) => {
+                      // Saisie libre : on stocke brut, sans clamp
+                      const raw = e.target.value;
+                      if (raw === "") { setBpm(""); return; }
+                      const n = parseInt(raw, 10);
+                      if (!Number.isNaN(n)) setBpm(n);
+                    }}
+                    onBlur={() => {
+                      // Clamp uniquement quand on quitte le champ
+                      const n = parseInt(bpm, 10);
+                      setBpm(Number.isNaN(n) ? 60 : Math.min(250, Math.max(30, n)));
+                    }}
+                    inputMode="numeric"
+                    aria-label="Tempo en battements par minute"
+                  />
               <span className="text-cyan-300/80 text-xs tracking-wide">
                 <Term defKey="bpm">bpm</Term>
               </span>
