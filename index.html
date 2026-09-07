@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Fitness</title>
+  <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+  <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    body {
+      background: #070b14;
+      font-family: system-ui, -apple-system, sans-serif;
+    }
+    #root {
+      max-width: 480px;
+      margin: 0 auto;
+      background: #070b14;
+      min-height: 100vh;
+      position: relative;
+    }
+    .term-mark {
+      border-bottom: 1px dotted #eab30899;
+      cursor: help;
+      color: inherit;
+    }
+    .term-pop {
+      position: absolute;
+      left: 50%;
+      bottom: calc(100% + 8px);
+      transform: translateX(-50%);
+      width: min(260px, 72vw);
+      background: #12182b;
+      border: 1px solid #2e2a55;
+      color: #cbd5e1;
+      font-size: 11px;
+      font-style: normal;
+      font-weight: 400;
+      letter-spacing: 0;
+      text-transform: none;
+      line-height: 1.45;
+      padding: 10px 12px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.45);
+      z-index: 50;
+      text-align: left;
+    }
+    .term-pop strong {
+      display: block;
+      color: #f8fafc;
+      font-size: 12px;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+    .header-logo {
+      width: 44px;
+      height: 44px;
+      border-radius: 50%;
+      overflow: hidden;
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .header-logo img {
+      width: 36px;
+      height: 36px;
+      object-fit: contain;
+      object-position: center;
+    }
+    .bpm-box {
+      width: 44px;
+      height: 44px;
+      border-radius: 10px;
+      background: #22d3ee22;
+      border: 1px solid #22d3ee55;
+      color: #67e8f9;
+      text-align: center;
+      font-size: 15px;
+      font-weight: 600;
+      font-variant-numeric: tabular-nums;
+    }
+    .bpm-box:focus {
+      outline: none;
+      border-color: #67e8f9;
+    }
+    input.bpm-box::-webkit-outer-spin-button,
+    input.bpm-box::-webkit-inner-spin-button {
+      -webkit-appearance: none;
+      margin: 0;
+    }
+    input.bpm-box[type=number] {
+      -moz-appearance: textfield;
+    }
+    /* ─── Contrôles métronome (sonorité + volume) ─── */
+    .tone-select {
+      padding: 8px 12px;
+      font-size: 12px;
+      border-radius: 10px;
+      background: #0f1524;
+      border: 1px solid #1a2236;
+      color: #94a3b8;
+      cursor: pointer;
+      outline: none;
+    }
+    .tone-select:focus {
+      border-color: #22d3ee55;
+    }
+    .vol-slider {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 110px;
+      height: 4px;
+      border-radius: 2px;
+      background: #1a2236;
+      outline: none;
+      cursor: pointer;
+    }
+    .vol-slider::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      appearance: none;
+      width: 16px;
+      height: 16px;
+      border-radius: 50%;
+      background: #22d3ee;
+      box-shadow: 0 0 8px #22d3ee66;
+      cursor: pointer;
+    }
+    .vol-slider::-moz-range-thumb {
+      width: 16px;
+      height: 16px;
+      border: none;
+      border-radius: 50%;
+      background: #22d3ee;
+      cursor: pointer;
+    }
+  </style>
+  <!-- Chemins relatifs : GitHub Pages est servi sous /<repo>/, pas à la racine du domaine -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="16x16" href="favicon-16x16.png">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon.png">
+  <link rel="manifest" href="site.webmanifest">
+  <meta name="theme-color" content="#07202b">
+</head>
+<body>
+  <div id="root"></div>
+
+  <script type="text/babel">
+    // ─── Récupération des hooks React ───
+    const { useState, useEffect, useRef, useMemo } = React;
+
+    const DEFINITIONS = {
+      vfc: {
+        title: "VFC — Variabilité de la Fréquence Cardiaque",
+        text: "Variation des intervalles entre deux battements. Une VFC élevée signale un système nerveux souple, capable de passer du stress au calme. La cohérence cardiaque est l’un des moyens les plus simples de l’entraîner.",
+      },
+      box: {
+        title: "Box Breathing",
+        text: "Respiration en carré : quatre temps égaux — inspire, retiens, expire, pause à vide. Utilisée par les forces spéciales pour rester calme et alerte. Le « carré » rend le rythme facile à mémoriser.",
+      },
+      "478": {
+        title: "4-7-8",
+        text: "Quatre temps d’inspire, sept de rétention, huit d’expire. L’expiration longue active le système parasympathique : c’est un tranquillisant naturel, idéal avant le sommeil.",
+      },
+      bpm: {
+        title: "bpm — battements par minute",
+        text: "Tempo du métronome. À 60 bpm, un compte dure une seconde. Plus bas (autour de 45), le souffle s’allonge et s’apaise ; plus haut, le rythme se resserre.",
+      },
+    };
+
+    function formatRatio(ratio) {
+      if (!ratio) return "";
+      if (!ratio.hold && !ratio.holdEmpty) return `${ratio.inspire}–${ratio.expire}`;
+      if (ratio.holdEmpty) return `${ratio.inspire}–${ratio.hold}–${ratio.expire}–${ratio.holdEmpty}`;
+      return `${ratio.inspire}–${ratio.hold}–${ratio.expire}`;
+    }
+
+    function ratioDefinition(label) {
+      return {
+        title: `Ratio ${label}`,
+        text: "Chaque chiffre est un nombre de comptes du métronome, pas des secondes fixes. L’ordre habituel : inspire — rétention poumons pleins — expire — pause poumons vides. Le tempo (bpm) décide de la durée réelle de chaque compte.",
+      };
+    }
+
+    // ─── Audio : cloche tibétaine (métronome_2) ───
+    function ensureAudio(audioCtxRef) {
+      try {
+        const AC = window.AudioContext || window.webkitAudioContext;
+        if (!AC) return null;
+        if (!audioCtxRef.current) audioCtxRef.current = new AC();
+        return audioCtxRef.current;
+      } catch (e) {
+        return null;
+      }
+    }
+
+    function playBell(ctx, time, tone, volume) {
+      try {
+        const osc1 = ctx.createOscillator();
+        const osc2 = ctx.createOscillator();
+        const gainNode = ctx.createGain();
+
+        osc1.connect(gainNode);
+        osc2.connect(gainNode);
+        gainNode.connect(ctx.destination);
+
+        osc1.type = "sine";
+        osc2.type = "sine";
+
+        let freq1 = 880;
+        let freq2 = 1200;
+        if (tone === "grave") {
+          freq1 = 440;
+          freq2 = 600;
+        } else if (tone === "aigue") {
+          freq1 = 1500;
+          freq2 = 2100;
+        }
+
+        osc1.frequency.setValueAtTime(freq1, time);
+        osc2.frequency.setValueAtTime(freq2, time);
+
+        gainNode.gain.setValueAtTime(0, time);
+        gainNode.gain.linearRampToValueAtTime(volume, time + 0.005);
+        gainNode.gain.exponentialRampToValueAtTime(0.0001, time + 1.5);
+
+        osc1.start(time);
+        osc1.stop(time + 1.5);
+        osc2.start(time);
+        osc2.stop(time + 1.5);
+      } catch (e) {}
+    }
+
+    function Term({ defKey, ratioLabel, children }) {
+      const [open, setOpen] = useState(false);
+      const wrapRef = useRef(null);
+      const def =
+        defKey === "ratio"
+          ? ratioDefinition(ratioLabel || children)
+          : DEFINITIONS[defKey];
+
+      useEffect(() => {
+        if (!open) return;
+        const close = (e) => {
+          if (wrapRef.current && !wrapRef.current.contains(e.target)) setOpen(false);
+        };
+        document.addEventListener("click", close);
+        return () => document.removeEventListener("click", close);
+      }, [open]);
+
+      if (!def) return <>{children}</>;
+
+      return (
+        <span
+          ref={wrapRef}
+          className="relative inline"
+          onClick={(e) => {
+            e.stopPropagation();
+            e.preventDefault();
+            setOpen((v) => !v);
+          }}
+        >
+          <span className="term-mark">{children}</span>
+          {open && (
+            <span className="term-pop" role="tooltip">
+              <strong>{def.title}</strong>
+              {def.text}
+            </span>
+          )}
+        </span>
+      );
+    }
+
+    function LogoMark({ color = "#67e8f9", glowColor = "#22d3ee", size = 22 }) {
+      const ring  = "M 106.57 78.16 A 49.98 49.98 0 1 1 108.01 46.10";
+      const wave1 = "M 16.65 68.82 C 19.20 65.38, 26.85 51.57, 31.95 48.17 C 37.05 44.76, 42.15 46.96, 47.25 48.39 C 52.35 49.81, 57.45 54.13, 62.55 56.71 C 67.65 59.29, 72.75 62.67, 77.85 63.89 C 82.95 65.11, 88.62 65.11, 93.15 64.03 C 97.68 62.96, 102.22 59.34, 105.05 57.46 C 107.88 55.59, 108.45 54.70, 110.15 52.79 C 111.85 50.88, 114.40 47.13, 115.25 45.99";
+      const wave2 = "M 16.65 68.82 C 19.20 67.80, 26.85 62.71, 31.95 62.69 C 37.05 62.67, 42.15 66.27, 47.25 68.72 C 52.35 71.16, 57.45 75.28, 62.55 77.37 C 67.65 79.45, 73.03 81.09, 77.85 81.23 C 82.67 81.38, 86.92 80.09, 91.45 78.24 C 95.98 76.39, 101.65 71.92, 105.05 70.14 C 108.45 68.37, 110.72 68.02, 111.85 67.59";
+
+      return (
+        <svg width={size} height={size} viewBox="0 0 120 120" fill="none" aria-hidden="true">
+          <defs>
+            <filter id="logoHalo" x="-60%" y="-60%" width="220%" height="220%">
+              <feGaussianBlur stdDeviation="3.2" />
+            </filter>
+          </defs>
+          <g filter="url(#logoHalo)" stroke={glowColor} strokeWidth="7.5" strokeLinecap="round" fill="none" opacity="0.85">
+            <path d={ring} />
+            <path d={wave1} />
+            <path d={wave2} />
+          </g>
+          <g stroke={color} strokeWidth="6.5" strokeLinecap="round" fill="none">
+            <path d={ring} />
+            <path d={wave1} />
+            <path d={wave2} />
+          </g>
+        </svg>
+      );
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // DONNÉES — 3 exercices (ratio, intensité, tags)
+    // ═══════════════════════════════════════════════════════════════════
+    const EXERCISES = [
+      {
+        id: "box",
+        name: "Box Breathing",
+        subtitle: "Gestion du stress & performance",
+        emoji: "⬜",
+        duration: "4–6 min",
+        level: "Débutant",
+        origin: "US Navy SEALs / Marines",
+        benefits: ["Focus", "Performance", "Concentration"],
+        tags: ["#Focus", "#Performance", "#Concentration", "#Débutant", "#NavySEALs"],
+        color: "#38bdf8",
+        gradFrom: "#0c4a6e",
+        gradTo: "#075985",
+        description:
+          "Technique tactique utilisée par les forces spéciales. Ratio égal pour stabiliser le système nerveux tout en restant alerte.",
+        ratio: { inspire: 4, hold: 4, expire: 4, holdEmpty: 4 },
+        intensity: {
+          inspire: "douce et régulière",
+          hold: "neutre, sans tension",
+          expire: "contrôlée et complète",
+          holdEmpty: "neutre",
+        },
+        cycles: 6,
+        instructions: {
+          inspire: "Inspire tranquillement par le nez. Le ventre se gonfle.",
+          hold: "Retiens l’air. Corps détendu, épaules relâchées.",
+          expire: "Expire lentement par le nez ou la bouche. Vide complètement.",
+          holdEmpty: "Poumons vides. Reste calme quelques instants.",
+        },
+      },
+      {
+        id: "478",
+        name: "4-7-8",
+        subtitle: "Le tranquillisant naturel",
+        emoji: "🌙",
+        duration: "2–3 min",
+        level: "Débutant",
+        origin: "Andrew Weil / Pranayama",
+        benefits: ["Sommeil", "Anxiété", "Calme"],
+        tags: ["#Sommeil", "#Anxiété", "#Calme", "#Débutant", "#Scientifique"],
+        color: "#a78bfa",
+        gradFrom: "#1e1b4b",
+        gradTo: "#2e1065",
+        description:
+          "Méthode popularisée par le Dr Andrew Weil. L’expiration longue active fortement le système parasympathique. Idéal avant de dormir ou en cas d’anxiété.",
+        ratio: { inspire: 4, hold: 7, expire: 8, holdEmpty: 0 },
+        intensity: {
+          inspire: "douce",
+          hold: "neutre",
+          expire: "longue et complète",
+        },
+        cycles: 4,
+        instructions: {
+          inspire: "Inspire silencieusement par le nez pendant 4 comptes.",
+          hold: "Retiens le souffle sans forcer pendant 7 comptes.",
+          expire: "Expire par la bouche en faisant un léger « whoosh », vide vraiment les poumons.",
+        },
+      },
+      {
+        id: "coherence",
+        name: "Cohérence cardiaque",
+        subtitle: "Équilibre & VFC",
+        emoji: "💗",
+        duration: "5 min",
+        level: "Débutant",
+        origin: "Recherche scientifique (HRV)",
+        benefits: ["Stress", "VFC", "Équilibre"],
+        tags: ["#Stress", "#VFC", "#Équilibre", "#Débutant", "#Scientifique"],
+        color: "#2dd4bf",
+        gradFrom: "#042f2e",
+        gradTo: "#134e4a",
+        description:
+          "Respiration à ~5–6 cycles par minute. Maximise la variabilité de la fréquence cardiaque et régule le stress au quotidien. À pratiquer 3×5 min par jour idéalement.",
+        ratio: { inspire: 5, hold: 0, expire: 5, holdEmpty: 0 },
+        intensity: {
+          inspire: "douce et fluide",
+          expire: "douce et fluide",
+        },
+        cycles: 30,
+        instructions: {
+          inspire: "Inspire doucement par le nez. Laisse le ventre s’ouvrir.",
+          expire: "Expire doucement par le nez ou la bouche. Continu et régulier.",
+        },
+      },
+    ];
+
+    // ─── Styles des phases ───
+    const PHASE_STYLE = {
+      inspire: { accent: "#38bdf8", label: "INSPIRE", bg: "from-sky-950 to-sky-900" },
+      hold: { accent: "#a78bfa", label: "RETIENS", bg: "from-violet-950 to-violet-900" },
+      expire: { accent: "#2dd4bf", label: "EXPIRE", bg: "from-teal-950 to-teal-900" },
+      holdEmpty: { accent: "#94a3b8", label: "PAUSE", bg: "from-slate-950 to-slate-900" },
+      prep: { accent: "#64748b", label: "", bg: "from-slate-950 to-slate-900" },
+    };
+
+    // ─── Utilitaires de persistance ───
+    const store = {
+      get: (k, fb = null) => {
+        try {
+          const r = localStorage.getItem(k);
+          return r ? JSON.parse(r) : fb;
+        } catch {
+          return fb;
+        }
+      },
+      set: (k, v) => {
+        try {
+          localStorage.setItem(k, JSON.stringify(v));
+        } catch {}
+      },
+    };
+
+    function getTodayKey() {
+      return new Date().toISOString().slice(0, 10);
+    }
+
+    function updateStreak() {
+      const s = store.get("af_streak", { count: 0, lastDate: null });
+      const today = getTodayKey();
+      const yesterday = new Date(Date.now() - 86400000).toISOString().slice(0, 10);
+      if (s.lastDate === today) return s;
+      const updated = {
+        count: s.lastDate === yesterday ? s.count + 1 : 1,
+        lastDate: today,
+      };
+      store.set("af_streak", updated);
+      return updated;
+    }
+
+    function logSession(exId, name) {
+      const logs = store.get("af_journal", []);
+      logs.unshift({
+        id: Date.now(),
+        exerciseId: exId,
+        name,
+        date: getTodayKey(),
+        time: new Date().toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" }),
+      });
+      store.set("af_journal", logs.slice(0, 100));
+    }
+
+    function buildSequence(ex) {
+      const seq = [];
+      const { ratio, cycles, instructions, intensity } = ex;
+      const phases = ["inspire", "hold", "expire", "holdEmpty"].filter(
+        (p) => ratio[p] > 0
+      );
+      for (let c = 1; c <= cycles; c++) {
+        phases.forEach((phase) => {
+          seq.push({
+            phase,
+            duration: ratio[phase],
+            cycle: c,
+            totalCycles: cycles,
+            instruction: instructions[phase] || "",
+            intensity: intensity[phase] || "douce",
+          });
+        });
+      }
+      return seq;
+    }
+
+    // ─── Composant principal ───
+    function AirFitness() {
+      const [tab, setTab] = useState("home");
+      const [activeEx, setActiveEx] = useState(null);
+      const [sequence, setSequence] = useState([]);
+      const [stepIdx, setStepIdx] = useState(0);
+      const [beatsLeft, setBeatsLeft] = useState(0);
+      const [running, setRunning] = useState(false);
+      const [selectedTags, setSelectedTags] = useState([]);
+      const [bpm, setBpm] = useState(() => {
+        const saved = store.get("af_bpm", 60);
+        const n = Number(saved);
+        return n >= 30 && n <= 250 ? n : 60;
+      });
+      const [tone, setTone] = useState(() => store.get("af_tone", "standard"));
+      const [volume, setVolume] = useState(() => {
+        const v = Number(store.get("af_volume", 0.7));
+        return v >= 0 && v <= 1 ? v : 0.7;
+      });
+      const [streak, setStreak] = useState(() =>
+        store.get("af_streak", { count: 0, lastDate: null })
+      );
+      const [journal, setJournal] = useState(() => store.get("af_journal", []));
+
+      // ─── Refs ───
+      const audioCtxRef = useRef(null);
+      const runningRef = useRef(false);
+      const stepRef = useRef(0);
+      const seqRef = useRef([]);
+      const bpmRef = useRef(bpm);
+      const toneRef = useRef(tone);
+      const volumeRef = useRef(volume);
+      const beatsRef = useRef(0);
+      const schedulerTimerRef = useRef(null);
+      const uiTimerRef = useRef(null);
+      const nextBeatTimeRef = useRef(0);
+      const beatQueueRef = useRef([]);
+      const wakeLockRef = useRef(null);
+
+      const today = getTodayKey();
+      const doneToday = streak.lastDate === today;
+
+      const filteredExercises = useMemo(() => {
+        if (selectedTags.length === 0) return EXERCISES;
+        return EXERCISES.filter((ex) =>
+          selectedTags.every((t) => ex.tags.includes(t))
+        );
+      }, [selectedTags]);
+
+      const allTags = useMemo(() => {
+        const set = new Set();
+        EXERCISES.forEach((ex) => ex.tags.forEach((t) => set.add(t)));
+        return Array.from(set).sort();
+      }, []);
+
+      // ─── Synchronisation refs + persistance ───
+      useEffect(() => { runningRef.current = running; }, [running]);
+      useEffect(() => { stepRef.current = stepIdx; }, [stepIdx]);
+      useEffect(() => { seqRef.current = sequence; }, [sequence]);
+      useEffect(() => { beatsRef.current = beatsLeft; }, [beatsLeft]);
+      useEffect(() => {
+        bpmRef.current = bpm;
+        store.set("af_bpm", bpm);
+      }, [bpm]);
+      useEffect(() => {
+        toneRef.current = tone;
+        store.set("af_tone", tone);
+      }, [tone]);
+      useEffect(() => {
+        volumeRef.current = volume;
+        store.set("af_volume", volume);
+      }, [volume]);
+
+      // ─── Anti-veille : garder l’écran allumé pendant la session ───
+      useEffect(() => {
+        let lock = null;
+        if (running && "wakeLock" in navigator) {
+          navigator.wakeLock.request("screen")
+            .then((l) => { lock = l; wakeLockRef.current = l; })
+            .catch(() => {});
+        } else if (wakeLockRef.current) {
+          try { wakeLockRef.current.release(); } catch (e) {}
+          wakeLockRef.current = null;
+        }
+        return () => {
+          if (lock) { try { lock.release(); } catch (e) {} }
+        };
+      }, [running]);
+
+      // ─── Vibration courte à chaque changement de phase ───
+      useEffect(() => {
+        if (running && "vibrate" in navigator) {
+          try { navigator.vibrate(30); } catch (e) {}
+        }
+      }, [stepIdx]); // eslint-disable-line
+
+      // ─── Avance d’un temps du métronome (décrémente / change de phase) ───
+      function advanceBeat() {
+        const t = beatsRef.current;
+        if (t > 1) {
+          setBeatsLeft(t - 1);
+          return;
+        }
+        const seq = seqRef.current;
+        const idx = stepRef.current;
+        if (idx < seq.length - 1) {
+          const next = idx + 1;
+          setStepIdx(next);
+          stepRef.current = next;
+          setBeatsLeft(seq[next].duration);
+        } else {
+          stopScheduler();
+          setRunning(false);
+          runningRef.current = false;
+          finishExercise();
+        }
+      }
+
+      // ─── Scheduler audio (lookahead, style métronome_2) ───
+      function startScheduler() {
+        const ctx = ensureAudio(audioCtxRef);
+        if (!ctx) return;
+        if (ctx.state === "suspended") ctx.resume();
+
+        nextBeatTimeRef.current = ctx.currentTime + 0.12;
+        beatQueueRef.current = [];
+
+        // Boucle de planification audio (25 ms de lookahead)
+        schedulerTimerRef.current = setInterval(() => {
+          while (nextBeatTimeRef.current < ctx.currentTime + 0.15) {
+            playBell(ctx, nextBeatTimeRef.current, toneRef.current, volumeRef.current);
+            beatQueueRef.current.push(nextBeatTimeRef.current);
+            nextBeatTimeRef.current += 60 / (bpmRef.current || 60);
+          }
+        }, 25);
+
+        // Boucle UI synchronisée sur l’horloge audio
+        uiTimerRef.current = setInterval(() => {
+          const now = ctx.currentTime;
+          let beat = false;
+          while (beatQueueRef.current.length && beatQueueRef.current[0] <= now) {
+            beatQueueRef.current.shift();
+            beat = true;
+          }
+          if (beat) advanceBeat();
+        }, 50);
+      }
+
+      function stopScheduler() {
+        if (schedulerTimerRef.current) {
+          clearInterval(schedulerTimerRef.current);
+          schedulerTimerRef.current = null;
+        }
+        if (uiTimerRef.current) {
+          clearInterval(uiTimerRef.current);
+          uiTimerRef.current = null;
+        }
+        beatQueueRef.current = [];
+      }
+
+      // ─── Effet principal : démarre/arrête le métronome avec le bouton ───
+      useEffect(() => {
+        stopScheduler();
+        if (!running || !activeEx || tab !== "exercise") return;
+        startScheduler();
+        return () => stopScheduler();
+      }, [running, tab, activeEx]); // eslint-disable-line
+
+      function openExercise(ex) {
+        const seq = buildSequence(ex);
+        setActiveEx(ex);
+        setSequence(seq);
+        setStepIdx(0);
+        setBeatsLeft(seq[0].duration);
+        setRunning(false);
+        setTab("exercise");
+      }
+
+      function finishExercise() {
+        const updated = updateStreak();
+        setStreak(updated);
+        logSession(activeEx.id, activeEx.name);
+        setJournal(store.get("af_journal", []));
+        setTab("complete");
+      }
+
+      function toggleTag(tag) {
+        setSelectedTags((prev) =>
+          prev.includes(tag) ? prev.filter((t) => t !== tag) : [...prev, tag]
+        );
+      }
+
+      // ─── Écran exercice ───
+      if (tab === "exercise" && activeEx && sequence.length > 0) {
+        const current = sequence[stepIdx];
+        const style = PHASE_STYLE[current.phase] || PHASE_STYLE.prep;
+        const progress = ((stepIdx + 1) / sequence.length) * 100;
+        const isFirst = stepIdx === 0 && beatsLeft === sequence[0].duration;
+
+        function clampBpm(v) {
+          const n = parseInt(v, 10);
+          if (Number.isNaN(n)) return;
+          setBpm(Math.min(250, Math.max(30, n)));
+        }
+
+        return (
+          <div
+            className={`min-h-screen flex flex-col bg-gradient-to-b ${style.bg} transition-all duration-700`}
+            style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
+          >
+            <div className="flex items-center justify-between px-5 pt-12 pb-3">
+              <button
+                onClick={() => {
+                  setRunning(false);
+                  setTab("home");
+                }}
+                className="text-white/40 text-sm active:opacity-60"
+              >
+                ← Quitter
+              </button>
+              <div className="text-center">
+                <p className="text-white/50 text-xs font-medium tracking-wide">
+                  {activeEx.id === "box" ? (
+                    <Term defKey="box">{activeEx.name}</Term>
+                  ) : activeEx.id === "478" ? (
+                    <Term defKey="478">{activeEx.name}</Term>
+                  ) : (
+                    activeEx.name
+                  )}
+                </p>
+                <p className="text-white/30 text-[10px] mt-0.5">
+                  Cycle {current.cycle} / {current.totalCycles}
+                </p>
+              </div>
+              <div className="w-14" />
+            </div>
+
+            <div className="mx-5 h-0.5 rounded-full bg-white/10">
+              <div
+                className="h-0.5 rounded-full transition-all duration-500"
+                style={{ width: `${progress}%`, background: style.accent }}
+              />
+            </div>
+
+            <p className="px-6 mt-4 text-center text-white/40 text-[11px] italic leading-relaxed">
+              {activeEx.description}
+            </p>
+
+            {/* ─── Contrôles du métronome : tempo, sonorité, volume ─── */}
+            <div className="mt-3 flex items-center justify-center gap-2">
+              <input
+                className="bpm-box"
+                type="number"
+                min="30"
+                max="250"
+                value={bpm}
+                onChange={(e) => {
+                  const raw = e.target.value;
+                  if (raw === "") {
+                    setBpm("");
+                    return;
+                  }
+                  clampBpm(raw);
+                }}
+                onBlur={() => {
+                  if (!bpm) setBpm(60);
+                }}
+                inputMode="numeric"
+                aria-label="Tempo en battements par minute"
+              />
+              <span className="text-cyan-300/80 text-xs tracking-wide">
+                <Term defKey="bpm">bpm</Term>
+              </span>
+            </div>
+
+            <div className="mt-2.5 flex items-center justify-center gap-3">
+              <select
+                className="tone-select"
+                value={tone}
+                onChange={(e) => setTone(e.target.value)}
+                aria-label="Sonorité du métronome"
+              >
+                <option value="grave">Grave (Bol tibétain)</option>
+                <option value="standard">Standard (Médium)</option>
+                <option value="aigue">Aiguë (Carillon)</option>
+              </select>
+              <span className="text-slate-500 text-sm" aria-hidden="true">🔊</span>
+              <input
+                className="vol-slider"
+                type="range"
+                min="0"
+                max="1"
+                step="0.05"
+                value={volume}
+                onChange={(e) => setVolume(parseFloat(e.target.value))}
+                aria-label="Volume du métronome"
+              />
+            </div>
+
+            <div className="flex-1 flex flex-col items-center justify-center px-6 gap-6">
+              <div className="relative flex items-center justify-center">
+                {running && (
+                  <div
+                    className="absolute w-48 h-48 rounded-full animate-ping opacity-[0.08]"
+                    style={{
+                      background: style.accent,
+                      animationDuration:
+                        current.phase === "expire" ? "2.2s" : "1.4s",
+                    }}
+                  />
+                )}
+                <div
+                  className="w-44 h-44 rounded-full flex flex-col items-center justify-center gap-1"
+                  style={{
+                    background: style.accent + "10",
+                    border: `2px solid ${style.accent}35`,
+                    boxShadow: `0 0 40px ${style.accent}15`,
+                  }}
+                >
+                  <span className="text-5xl font-light text-white tabular-nums leading-none">
+                    {beatsLeft}
+                  </span>
+                  <span className="text-[11px] text-white/40 tracking-widest uppercase">
+                    comptes
+                  </span>
+                </div>
+              </div>
+
+              <div className="text-center max-w-xs space-y-2">
+                <p className="text-white/90 text-[15px] leading-relaxed font-medium">
+                  {current.instruction}
+                </p>
+                <p className="text-white/35 text-xs">
+                  Intensité : {current.intensity}
+                </p>
+              </div>
+            </div>
+
+            <div className="px-5 pb-12 flex flex-col gap-3">
+              <button
+                onClick={() => setRunning((r) => !r)}
+                className="w-full py-4 rounded-2xl text-white font-semibold text-[15px] transition-all active:scale-[0.98]"
+                style={{
+                  background: running
+                    ? "rgba(255,255,255,0.08)"
+                    : `linear-gradient(135deg, ${style.accent}, ${style.accent}cc)`,
+                  border: running ? "1px solid rgba(255,255,255,0.12)" : "none",
+                  boxShadow: running ? "none" : `0 8px 28px ${style.accent}35`,
+                }}
+              >
+                {running ? "⏸  Pause" : isFirst ? "▶  Démarrer" : "▶  Reprendre"}
+              </button>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => {
+                    if (stepIdx > 0) {
+                      const p = stepIdx - 1;
+                      setStepIdx(p);
+                      setBeatsLeft(sequence[p].duration);
+                      setRunning(false);
+                    }
+                  }}
+                  disabled={stepIdx === 0}
+                  className="flex-1 py-3 rounded-2xl text-white/45 text-sm transition-all active:scale-95 disabled:opacity-20"
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  ← Précédent
+                </button>
+                <button
+                  onClick={() => {
+                    if (stepIdx < sequence.length - 1) {
+                      const n = stepIdx + 1;
+                      setStepIdx(n);
+                      setBeatsLeft(sequence[n].duration);
+                    } else {
+                      setRunning(false);
+                      finishExercise();
+                    }
+                  }}
+                  className="flex-1 py-3 rounded-2xl text-white/70 text-sm transition-all active:scale-95"
+                  style={{
+                    background: "rgba(255,255,255,0.05)",
+                    border: "1px solid rgba(255,255,255,0.08)",
+                  }}
+                >
+                  Suivant →
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      }
+
+      // ─── Écran de fin ───
+      if (tab === "complete" && activeEx) {
+        return (
+          <div
+            className="min-h-screen bg-[#070b14] flex flex-col items-center justify-center px-6 py-12"
+            style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
+          >
+            <div className="w-full max-w-sm flex flex-col items-center gap-7 text-center">
+              <div className="text-6xl">{activeEx.emoji}</div>
+              <div>
+                <h2 className="text-2xl font-semibold text-white mb-1.5">
+                  Session terminée
+                </h2>
+                <p className="text-slate-400 text-sm">
+                  Tu as terminé{" "}
+                  <span className="text-white font-medium">{activeEx.name}</span>
+                </p>
+              </div>
+
+              <div
+                className="w-full rounded-3xl p-5"
+                style={{
+                  background: "linear-gradient(145deg, #12182b, #1a1435)",
+                  border: "1px solid #2e2a55",
+                }}
+              >
+                <p className="text-indigo-400/80 text-[11px] uppercase tracking-[0.15em] mb-2">
+                  Série en cours
+                </p>
+                <div className="flex items-center gap-3">
+                  <span className="text-3xl">
+                   {streak.count >= 7 ? "🔥" : streak.count >= 3 ? "⚡" : streak.count >= 1 ? "✨" : "💤"}
+                  </span>
+                  <div className="text-left">
+                    <p className="text-white text-2xl font-semibold">
+                      {streak.count} jour{streak.count > 1 ? "s" : ""}
+                    </p>
+                    <p className="text-indigo-300/70 text-xs">Continue comme ça</p>
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => setTab("home")}
+                className="w-full py-4 rounded-2xl text-white font-semibold text-[15px]"
+                style={{
+                  background: "linear-gradient(135deg, #0ea5e9, #0284c7)",
+                  boxShadow: "0 8px 28px #0ea5e935",
+                }}
+              >
+                Retour à l’accueil
+              </button>
+              <button
+                onClick={() => openExercise(activeEx)}
+                className="w-full py-3 rounded-2xl text-sky-400/90 text-sm font-medium"
+                style={{ border: "1px solid #0ea5e925" }}
+              >
+                Refaire cet exercice
+              </button>
+            </div>
+          </div>
+        );
+      }
+
+      // ─── Écran Journal ───
+      if (tab === "journal") {
+        return (
+          <div
+            className="min-h-screen bg-[#070b14] flex flex-col"
+            style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
+          >
+            <div className="px-5 pt-12 pb-4">
+              <h1 className="text-xl font-semibold text-white">Journal</h1>
+              <p className="text-slate-500 text-xs mt-1">
+                Historique de tes sessions de souffle
+              </p>
+            </div>
+
+            <div className="flex-1 overflow-y-auto px-5 pb-28">
+              {journal.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-20 text-center gap-3">
+                  <span className="text-4xl opacity-40">📓</span>
+                  <p className="text-slate-400 text-sm">Aucune session encore</p>
+                  <p className="text-slate-600 text-xs max-w-[220px]">
+                    Termine un exercice pour commencer à remplir ton journal
+                  </p>
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2.5">
+                  {journal.map((entry) => (
+                    <div
+                      key={entry.id}
+                      className="rounded-2xl px-4 py-3.5 flex items-center justify-between"
+                      style={{
+                        background: "#0f1524",
+                        border: "1px solid #1a2236",
+                      }}
+                    >
+                      <div>
+                        <p className="text-white text-sm font-medium">
+                          {entry.name}
+                        </p>
+                        <p className="text-slate-500 text-xs mt-0.5">
+                          {entry.date} · {entry.time}
+                        </p>
+                      </div>
+                      <span className="text-slate-600 text-lg">✓</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <BottomNav tab={tab} setTab={setTab} />
+          </div>
+        );
+      }
+
+      // ─── Écran d’accueil ───
+      return (
+        <div
+          className="min-h-screen bg-[#070b14] flex flex-col"
+          style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
+        >
+          <div className="flex-1 overflow-y-auto pb-28">
+            <div className="px-5 pt-12 pb-1 flex items-center justify-between">
+              <div>
+                <h1 className="text-[22px] font-semibold text-white tracking-tight">
+                  Air Fitness
+                </h1>
+                <p className="text-slate-500 text-xs mt-0.5">
+                  Souffle · Présence · Santé 
+                </p>
+              </div>
+              <div className="header-logo">
+                <img
+                  src="images/logo_sans_texte_modif.png"
+                  alt="Air Fitness"
+                  width="36"
+                  height="36"
+                />
+              </div>
+            </div>
+
+            {/* Carte Streak */}
+            <div
+              className="mx-5 mt-5 rounded-3xl p-5"
+              style={{
+                background: "linear-gradient(145deg, #12182b, #1a1435)",
+                border: "1px solid #2e2a55",
+              }}
+            >
+              <div className="flex items-center justify-between mb-3">
+                <div>
+                  <p className="text-indigo-400/80 text-[11px] uppercase tracking-[0.15em] font-medium mb-1">
+                    Série en cours
+                  </p>
+                  <div className="flex items-end gap-1.5">
+                    <span className="text-3xl font-semibold text-white">
+                      {streak.count}
+                    </span>
+                    <span className="text-indigo-300/70 text-sm mb-0.5">
+                      jour{streak.count > 1 ? "s" : ""}
+                    </span>
+                  </div>
+                </div>
+                <span className="text-3xl">
+                  {streak.count >= 7 ? "🔥" : streak.count >= 3 ? "⚡" : streak.count >= 1 ? "✨" : "💤"}
+                </span>
+              </div>
+              <div className="flex gap-1.5 mb-2.5">
+                {Array.from({ length: 7 }).map((_, i) => (
+                  <div
+                    key={i}
+                    className="flex-1 h-1 rounded-full transition-all"
+                    style={{
+                      background:
+                        i < Math.min(streak.count, 7) ? "#818cf8" : "#2a2550",
+                    }}
+                  />
+                ))}
+              </div>
+              <p className="text-indigo-400/60 text-xs">
+                {doneToday
+                  ? "Session réalisée aujourd’hui"
+                  : "Fais une session pour prolonger ta série"}
+              </p>
+            </div>
+
+            {/* Filtres */}
+            <div className="px-5 mt-6">
+              <p className="text-slate-500 text-[11px] uppercase tracking-[0.15em] font-medium mb-2.5">
+                FILTRES
+              </p>
+              <div className="flex flex-wrap gap-2">
+                {allTags.map((tag) => {
+                  const active = selectedTags.includes(tag);
+                  return (
+                    <button
+                      key={tag}
+                      onClick={() => toggleTag(tag)}
+                      className="px-3 py-1.5 rounded-full text-xs font-medium transition-all active:scale-95"
+                      style={{
+                        background: active ? "#0ea5e920" : "#0f1524",
+                        color: active ? "#38bdf8" : "#64748b",
+                        border: active
+                          ? "1px solid #0ea5e940"
+                          : "1px solid #1a2236",
+                      }}
+                    >
+                      {tag}
+                    </button>
+                  );
+                })}
+                {selectedTags.length > 0 && (
+                  <button
+                    onClick={() => setSelectedTags([])}
+                    className="px-3 py-1.5 rounded-full text-xs text-slate-500"
+                  >
+                    Effacer
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* Liste exercices */}
+            <div className="px-5 mt-6">
+              <p className="text-slate-500 text-[11px] uppercase tracking-[0.15em] font-medium mb-2.5">
+                {selectedTags.length > 0
+                  ? `${filteredExercises.length} exercice${filteredExercises.length > 1 ? "s" : ""}`
+                  : "Exercices de souffle"}
+              </p>
+
+              <div className="flex flex-col gap-3">
+                {filteredExercises.map((ex) => (
+                  <button
+                    key={ex.id}
+                    onClick={() => openExercise(ex)}
+                    className="w-full text-left rounded-2xl p-4 transition-all active:scale-[0.98]"
+                    style={{
+                      background: "#0f1524",
+                      border: `1px solid ${ex.color}18`,
+                    }}
+                  >
+                    <div className="flex items-start gap-3.5">
+                      <div
+                        className="w-12 h-12 rounded-xl flex items-center justify-center text-2xl flex-shrink-0"
+                        style={{ background: ex.color + "15" }}
+                      >
+                        {ex.emoji}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-0.5">
+                          <p className="text-white font-semibold text-[15px]">
+                            {ex.id === "box" ? (
+                              <Term defKey="box">{ex.name}</Term>
+                            ) : ex.id === "478" ? (
+                              <Term defKey="478">{ex.name}</Term>
+                            ) : (
+                              ex.name
+                            )}
+                          </p>
+                          <span
+                            className="text-[10px] px-1.5 py-0.5 rounded-full font-medium"
+                            style={{
+                              background: ex.color + "15",
+                              color: ex.color,
+                            }}
+                          >
+                            {ex.level}
+                          </span>
+                        </div>
+                        <p className="text-slate-400 text-xs leading-snug mb-2">
+                          {ex.id === "coherence" ? (
+                            <>
+                              Équilibre &{" "}
+                              <Term defKey="vfc">VFC</Term>
+                            </>
+                          ) : (
+                            ex.subtitle
+                          )}
+                        </p>
+                        <div className="flex flex-wrap gap-1.5">
+                          {ex.tags.slice(0, 4).map((t) => (
+                            <span key={t} className="text-[10px] text-slate-500">
+                              {t === "#VFC" ? (
+                                <Term defKey="vfc">#VFC</Term>
+                              ) : (
+                                t
+                              )}
+                            </span>
+                          ))}
+                        </div>
+                        <div className="flex gap-3 mt-2 text-slate-600 text-[11px]">
+                          <span>⏱ {ex.duration}</span>
+                          <span>
+                            <Term defKey="ratio" ratioLabel={formatRatio(ex.ratio)}>
+                              {formatRatio(ex.ratio)}
+                            </Term>
+                          </span>
+                        </div>
+                      </div>
+                      <span className="text-slate-600 text-lg self-center">›</span>
+                    </div>
+                  </button>
+                ))}
+
+                {filteredExercises.length === 0 && (
+                  <p className="text-slate-500 text-sm text-center py-8">
+                    Aucun exercice ne correspond à ces filtres
+                  </p>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <BottomNav tab={tab} setTab={setTab} />
+        </div>
+      );
+    }
+
+    // ─── Barre de navigation inférieure ───
+    function BottomNav({ tab, setTab }) {
+      const items = [
+        { id: "home", emoji: "🌬️", label: "Accueil" },
+        { id: "journal", emoji: "📓", label: "Journal" },
+      ];
+
+      return (
+        <div
+          className="fixed bottom-0 left-0 right-0"
+          style={{
+            background: "#060a12",
+            borderTop: "1px solid #141b2d",
+          }}
+        >
+        <div className="max-w-[480px] mx-auto flex items-center justify-between px-5 py-3.5">
+          {items.map((item) => {
+            const active = tab === item.id;
+            return (
+              <button
+                key={item.id}
+                onClick={() => setTab(item.id)}
+                className="flex flex-col items-center gap-0.5 transition-all active:scale-90"
+              >
+                <span className="text-xl">{item.emoji}</span>
+                <span
+                  className="text-[11px] font-medium"
+                  style={{ color: active ? "#38bdf8" : "#475569" }}
+                >
+                  {item.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+        </div>
+      );
+    }
+
+    // ─── Rendu ───
+    const root = ReactDOM.createRoot(document.getElementById("root"));
+    root.render(<AirFitness />);
+  </script>
+</body>
+</html>
