@@ -669,12 +669,7 @@
         const progress = ((stepIdx + 1) / sequence.length) * 100;
         const isFirst = stepIdx === 0 && beatsLeft === sequence[0].duration;
 
-        function clampBpm(v) {
-          const n = parseInt(v, 10);
-          if (Number.isNaN(n)) return;
-          setBpm(Math.min(250, Math.max(30, n)));
-        }
-
+        
         return (
           <div
             className={`min-h-screen flex flex-col bg-gradient-to-b ${style.bg} transition-all duration-700`}
