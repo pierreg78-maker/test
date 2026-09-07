@@ -14,6 +14,51 @@
       padding: 0;
       box-sizing: border-box;
     }
+    /* ─── Splash screen ─── */
+@keyframes drawRing {
+  to { stroke-dashoffset: 0; }
+}
+@keyframes splashFadeIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+@keyframes splashFadeOut {
+  from { opacity: 1; }
+  to   { opacity: 0; }
+}
+@keyframes waveFlow {
+  0%   { stroke-dashoffset: 260; opacity: 0.15; }
+  50%  { opacity: 0.9; }
+  100% { stroke-dashoffset: 0; opacity: 0.15; }
+}
+@keyframes waveSwirl {
+  0%, 100% { transform: rotate(0deg) scale(1); }
+  50%      { transform: rotate(14deg) scale(1.05); }
+}
+@keyframes taglineUp {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: radial-gradient(circle at 50% 42%, #10162b 0%, #070b14 70%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 22px;
+  animation: splashFadeIn 0.4s ease-out;
+}
+.splash-overlay.leaving {
+  animation: splashFadeOut 0.6s ease-in forwards;
+}
+@media (prefers-reduced-motion: reduce) {
+  .splash-overlay * { animation-duration: 0.01s !important; }
+}
+    
+    
     body {
       background: #070b14;
       font-family: system-ui, -apple-system, sans-serif;
@@ -469,7 +514,92 @@
       }
       return seq;
     }
+// ═══════════════════════════════════════════════════════════════════
+// SPLASH — logo animé (cercle qui se dessine + ondes tourbillonnantes)
+// ═══════════════════════════════════════════════════════════════════
+function SplashLogo() {
+  return (
+    <svg width="150" height="150" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+      <defs>
+        <filter id="splashHalo" x="-60%" y="-60%" width="220%" height="220%">
+          <feGaussianBlur stdDeviation="3" />
+        </filter>
+      </defs>
 
+      {/* Halo du cercle */}
+      <circle
+        cx="60" cy="60" r="49"
+        stroke="#4338ca" strokeWidth="6" fill="none" strokeLinecap="round"
+        strokeDasharray="308" strokeDashoffset="308"
+        filter="url(#splashHalo)" opacity="0.6"
+        style={{
+          animation: "drawRing 1.3s ease-out forwards",
+          transform: "rotate(-90deg)",
+          transformOrigin: "center",
+        }}
+      />
+      {/* Cercle net qui se dessine */}
+      <circle
+        cx="60" cy="60" r="49"
+        stroke="#312e81" strokeWidth="5" fill="none" strokeLinecap="round"
+        strokeDasharray="308" strokeDashoffset="308"
+        style={{
+          animation: "drawRing 1.3s ease-out forwards",
+          transform: "rotate(-90deg)",
+          transformOrigin: "center",
+        }}
+      />
+
+      {/* Ondes qui tourbillonnent (3 couches décalées, comme ton logo) */}
+      <g
+        style={{
+          transformOrigin: "60px 60px",
+          animation: "waveSwirl 2.4s ease-in-out infinite",
+        }}
+      >
+        <path
+          d="M 28 68 C 42 46, 58 50, 62 64 C 66 78, 84 82, 94 66 C 86 88, 60 90, 48 78 C 40 70, 34 70, 28 68 Z"
+          stroke="#8b93c9" strokeWidth="5" strokeLinecap="round" fill="none"
+          strokeDasharray="260"
+          style={{ animation: "waveFlow 2.6s ease-in-out infinite" }}
+        />
+        <path
+          d="M 32 58 C 46 76, 62 76, 70 62 C 78 48, 90 50, 92 58"
+          stroke="#6472b8" strokeWidth="4.5" strokeLinecap="round" fill="none"
+          strokeDasharray="260"
+          style={{ animation: "waveFlow 2.6s 0.35s ease-in-out infinite" }}
+        />
+        <path
+          d="M 36 50 C 50 64, 64 62, 72 52 C 80 42, 88 44, 90 50"
+          stroke="#4c5590" strokeWidth="4" strokeLinecap="round" fill="none"
+          strokeDasharray="260"
+          style={{ animation: "waveFlow 2.6s 0.7s ease-in-out infinite" }}
+        />
+      </g>
+    </svg>
+  );
+}
+
+function Splash() {
+  return (
+    <div className="splash-overlay">
+      <SplashLogo />
+      <p
+        className="text-slate-400 text-xs tracking-[0.45em] uppercase"
+        style={{ animation: "taglineUp 0.8s 1.2s ease-out both" }}
+      >
+        Air&nbsp;Fitness
+      </p>
+      <p
+        className="text-indigo-300/40 text-[10px] tracking-[0.2em]"
+        style={{ animation: "taglineUp 0.8s 1.6s ease-out both" }}
+      >
+        souffle · présence · santé
+      </p>
+    </div>
+  );
+}
+    
     // ─── Composant principal ───
     function AirFitness() {
       const [tab, setTab] = useState("home");
@@ -484,6 +614,20 @@
         const n = Number(saved);
         return n >= 30 && n <= 250 ? n : 60;
       });
+      // ─── Splash : une seule fois par session ───
+const [splash, setSplash] = useState(
+  () => !sessionStorage.getItem("af_splashSeen")
+);
+const [splashLeaving, setSplashLeaving] = useState(false);
+
+useEffect(() => {
+  if (!splash) return;
+  sessionStorage.setItem("af_splashSeen", "1");
+  const t1 = setTimeout(() => setSplashLeaving(true), 2200); // début du fondu
+  const t2 = setTimeout(() => setSplash(false), 2800);       // fin du fondu
+  return () => { clearTimeout(t1); clearTimeout(t2); };
+}, [splash]);
+      
       const [tone, setTone] = useState(() => store.get("af_tone", "standard"));
       const [volume, setVolume] = useState(() => {
         const v = Number(store.get("af_volume", 0.7));
@@ -986,6 +1130,19 @@
           className="min-h-screen bg-[#070b14] flex flex-col"
           style={{ fontFamily: "system-ui, -apple-system, sans-serif" }}
         >
+          {splash && (
+  <div className={splashLeaving ? "splash-overlay leaving" : "splash-overlay"}>
+    <SplashLogo />
+    <p className="text-slate-400 text-xs tracking-[0.45em] uppercase"
+       style={{ animation: "taglineUp 0.8s 1.2s ease-out both" }}>
+      Air&nbsp;Fitness
+    </p>
+    <p className="text-indigo-300/40 text-[10px] tracking-[0.2em]"
+       style={{ animation: "taglineUp 0.8s 1.6s ease-out both" }}>
+      souffle · présence · santé
+    </p>
+  </div>
+)}
           <div className="flex-1 overflow-y-auto pb-28">
             <div className="px-5 pt-12 pb-1 flex items-center justify-between">
               <div>
