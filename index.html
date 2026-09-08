@@ -681,6 +681,31 @@
       }
       return seq;
     }
+    // ─── Mode Mix : sonorité selon la phase ───
+function toneForPhase(tone, phase) {
+  if (tone !== "mix") return tone;
+  if (phase === "inspire") return "aigue";
+  if (phase === "expire") return "grave";
+  return "standard"; // hold et holdEmpty → médium
+}
+
+// Tableau : pour chaque beat absolu de la séquence, sa phase
+function buildBeatPhaseMap(seq) {
+  const map = [];
+  seq.forEach((step) => {
+    for (let i = 0; i < step.duration; i++) map.push(step.phase);
+  });
+  return map;
+}
+
+// Position absolue (en beats) d'un step + beats restants
+function absBeatPos(seq, idx, beatsLeft) {
+  let pos = 0;
+  for (let i = 0; i < idx; i++) pos += seq[i].duration;
+  const cur = seq[idx];
+  if (cur) pos += Math.max(0, cur.duration - beatsLeft);
+  return pos;
+}
 // ═══════════════════════════════════════════════════════════════════
 // SPLASH — logo animé (cercle qui se dessine + ondes tourbillonnantes)
 // ═══════════════════════════════════════════════════════════════════
@@ -796,6 +821,10 @@ const t2 = setTimeout(() => setSplash(false), 4700);       // fin
       const nextBeatTimeRef = useRef(0);
       const beatQueueRef = useRef([]);
       const wakeLockRef = useRef(null);
+            const beatQueueRef = useRef([]);
+      const wakeLockRef = useRef(null);
+      const beatPhaseRef = useRef([]);   // phase de chaque beat
+      const schedPosRef = useRef(0);     // position absolue du scheduler
 
       const today = getTodayKey();
       const doneToday = streak.lastDate === today;
@@ -816,7 +845,10 @@ const t2 = setTimeout(() => setSplash(false), 4700);       // fin
       // ─── Synchronisation refs + persistance ───
       useEffect(() => { runningRef.current = running; }, [running]);
       useEffect(() => { stepRef.current = stepIdx; }, [stepIdx]);
-      useEffect(() => { seqRef.current = sequence; }, [sequence]);
+           useEffect(() => { seqRef.current = sequence; }, [sequence]);
+      useEffect(() => {
+        beatPhaseRef.current = buildBeatPhaseMap(sequence);
+      }, [sequence]);
       useEffect(() => { beatsRef.current = beatsLeft; }, [beatsLeft]);
       useEffect(() => {
         bpmRef.current = bpm;
@@ -850,7 +882,7 @@ const t2 = setTimeout(() => setSplash(false), 4700);       // fin
       // ─── Vibration courte à chaque changement de phase ───
       useEffect(() => {
         if (running && "vibrate" in navigator) {
-          try { navigator.vibrate(30); } catch (e) {}
+          try { navigator.vibrate(60); } catch (e) {}
         }
       }, [stepIdx]); // eslint-disable-line
 
@@ -882,15 +914,23 @@ const t2 = setTimeout(() => setSplash(false), 4700);       // fin
         if (!ctx) return;
         if (ctx.state === "suspended") ctx.resume();
 
+        // Position de départ dans la séquence (pour le mode Mix)
+        schedPosRef.current = absBeatPos(seqRef.current, stepRef.current, beatsRef.current);
         nextBeatTimeRef.current = ctx.currentTime + 0.12;
         beatQueueRef.current = [];
 
-        // Boucle de planification audio (25 ms de lookahead)
         schedulerTimerRef.current = setInterval(() => {
           while (nextBeatTimeRef.current < ctx.currentTime + 0.15) {
-            playBell(ctx, nextBeatTimeRef.current, toneRef.current, volumeRef.current);
+            const phase = beatPhaseRef.current[schedPosRef.current] || null;
+            playBell(
+              ctx,
+              nextBeatTimeRef.current,
+              toneForPhase(toneRef.current, phase),
+              volumeRef.current
+            );
             beatQueueRef.current.push(nextBeatTimeRef.current);
             nextBeatTimeRef.current += 60 / (bpmRef.current || 60);
+            if (schedPosRef.current < beatPhaseRef.current.length) schedPosRef.current++;
           }
         }, 25);
 
@@ -1036,6 +1076,7 @@ const t2 = setTimeout(() => setSplash(false), 4700);       // fin
               >
                 <option value="grave">Grave (Bol tibétain)</option>
                 <option value="standard">Standard (Médium)</option>
+                <option value="mix">Mix — Inspire aigu · Expire grave</option>
                 <option value="aigue">Aiguë (Carillon)</option>
               </select>
               <span className="text-slate-500 text-sm" aria-hidden="true">🔊</span>
@@ -1124,12 +1165,13 @@ const t2 = setTimeout(() => setSplash(false), 4700);       // fin
                   ← Précédent
                 </button>
                 <button
-                  onClick={() => {
-                    if (stepIdx < sequence.length - 1) {
-                      const n = stepIdx + 1;
-                      setStepIdx(n);
-                      setBeatsLeft(sequence[n].duration);
-                    } else {
+                                 onClick={() => {
+                  if (stepIdx < sequence.length - 1) {
+                    const n = stepIdx + 1;
+                    setStepIdx(n);
+                    setBeatsLeft(sequence[n].duration);
+                    schedPosRef.current = absBeatPos(sequence, n, sequence[n].duration); // ← ajout
+                  } else {
                       setRunning(false);
                       finishExercise();
                     }
