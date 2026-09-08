@@ -293,6 +293,18 @@
         title: "bpm — battements par minute",
         text: "Tempo du métronome. À 60 bpm, un compte dure une seconde. Plus bas (autour de 45), le souffle s’allonge et s’apaise ; plus haut, le rythme se resserre.",
       },
+      tonique: {
+        title: "Respiration tonique",
+        text: "Inspire plus longue que l’expire. Ce déséquilibre léger stimule le système sympathique : plus d’éveil, moins de brouillard. Idéale au réveil ou en cas de coup de fatigue. Rester assis si la tête tourne.",
+      },
+      reveil: {
+        title: "Souffle du réveil",
+        text: "Inspire, courte rétention, expire un peu plus courte. La pause poumons pleins « charge » sans brusquer. Pensée pour les premières minutes de la journée, encore au lit ou déjà debout.",
+      },
+      activation: {
+        title: "Activation 3–3",
+        text: "Cycles courts et égaux. Le rythme plus serré réveille le corps sans hyperventilation. On peut monter un peu le bpm (70–80) si l’on veut plus de tonicité. S’arrêter dès le moindre étourdissement.",
+      },
     };
 
     function formatRatio(ratio) {
@@ -425,7 +437,7 @@
     }
 
     // ═══════════════════════════════════════════════════════════════════
-    // DONNÉES — 3 exercices (ratio, intensité, tags)
+    // DONNÉES — 6 exercices (ratio, intensité, tags)
     // ═══════════════════════════════════════════════════════════════════
     const EXERCISES = [
       {
@@ -510,6 +522,86 @@
         instructions: {
           inspire: "Inspire doucement par le nez. Laisse le ventre s’ouvrir.",
           expire: "Expire doucement par le nez ou la bouche. Continu et régulier.",
+        },
+      },
+      {
+        id: "tonique",
+        name: "Respiration tonique",
+        subtitle: "Anti-fatigue & éveil",
+        emoji: "⚡",
+        duration: "2–3 min",
+        level: "Débutant",
+        origin: "Respiration sympathique / pranayama",
+        benefits: ["Énergie", "Fatigue", "Réveil"],
+        tags: ["#Énergie", "#Fatigue", "#Réveil", "#Débutant", "#Matin"],
+        color: "#f59e0b",
+        gradFrom: "#431407",
+        gradTo: "#78350f",
+        description:
+          "Inspire plus longue que l’expire : le système nerveux bascule vers l’éveil. Utile au réveil, après un repas lourd ou quand le brouillard mental s’installe. Assis, dos droit, sans forcer.",
+        ratio: { inspire: 4, hold: 0, expire: 2, holdEmpty: 0 },
+        intensity: {
+          inspire: "pleine et dynamique, sans tension",
+          expire: "courte et nette",
+        },
+        cycles: 10,
+        instructions: {
+          inspire: "Inspire largement par le nez. Poitrine et ventre s’ouvrent.",
+          expire: "Expire plus court, toujours contrôlé. Ne vide pas dans la précipitation.",
+        },
+      },
+      {
+        id: "reveil",
+        name: "Souffle du réveil",
+        subtitle: "Démarrer la journée",
+        emoji: "🌅",
+        duration: "3–4 min",
+        level: "Débutant",
+        origin: "Hygiène du matin / yoga",
+        benefits: ["Réveil", "Énergie", "Focus"],
+        tags: ["#Réveil", "#Énergie", "#Matin", "#Focus", "#Débutant"],
+        color: "#fb923c",
+        gradFrom: "#7c2d12",
+        gradTo: "#9a3412",
+        description:
+          "Petite rétention poumons pleins pour « allumer » le corps sans le brusquer. À faire encore au lit, assis au bord, ou debout près de la fenêtre.",
+        ratio: { inspire: 4, hold: 2, expire: 3, holdEmpty: 0 },
+        intensity: {
+          inspire: "ample et claire",
+          hold: "légère, épaules basses",
+          expire: "souple, un peu plus courte",
+        },
+        cycles: 8,
+        instructions: {
+          inspire: "Inspire par le nez, comme si tu ouvrais la journée.",
+          hold: "Garde l’air deux comptes. Visage détendu.",
+          expire: "Expire un peu plus court. Reste présent.",
+        },
+      },
+      {
+        id: "activation",
+        name: "Activation 3–3",
+        subtitle: "Tonicité rapide",
+        emoji: "🔥",
+        duration: "2 min",
+        level: "Intermédiaire",
+        origin: "Préparation sportive",
+        benefits: ["Énergie", "Fatigue", "Focus"],
+        tags: ["#Énergie", "#Fatigue", "#Focus", "#Intermédiaire", "#Sport"],
+        color: "#fbbf24",
+        gradFrom: "#422006",
+        gradTo: "#713f12",
+        description:
+          "Cycles courts à ratio égal. Plus vif que la cohérence cardiaque, moins extrême qu’un souffle de feu. Monte le bpm vers 70–80 si tu veux plus de punch. Stoppe si la tête tourne.",
+        ratio: { inspire: 3, hold: 0, expire: 3, holdEmpty: 0 },
+        intensity: {
+          inspire: "vive et nasale",
+          expire: "vive et complète",
+        },
+        cycles: 12,
+        instructions: {
+          inspire: "Inspire net par le nez, trois comptes.",
+          expire: "Expire net par le nez ou la bouche, trois comptes.",
         },
       },
     ];
@@ -883,10 +975,8 @@ const t2 = setTimeout(() => setSplash(false), 4700);       // fin
               </button>
               <div className="text-center">
                 <p className="text-white/50 text-xs font-medium tracking-wide">
-                  {activeEx.id === "box" ? (
-                    <Term defKey="box">{activeEx.name}</Term>
-                  ) : activeEx.id === "478" ? (
-                    <Term defKey="478">{activeEx.name}</Term>
+                  {DEFINITIONS[activeEx.id] ? (
+                    <Term defKey={activeEx.id}>{activeEx.name}</Term>
                   ) : (
                     activeEx.name
                   )}
@@ -1326,10 +1416,8 @@ const t2 = setTimeout(() => setSplash(false), 4700);       // fin
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 mb-0.5">
                           <p className="text-white font-semibold text-[15px]">
-                            {ex.id === "box" ? (
-                              <Term defKey="box">{ex.name}</Term>
-                            ) : ex.id === "478" ? (
-                              <Term defKey="478">{ex.name}</Term>
+                            {DEFINITIONS[ex.id] ? (
+                              <Term defKey={ex.id}>{ex.name}</Term>
                             ) : (
                               ex.name
                             )}
