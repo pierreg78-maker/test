@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Air Fitness — Respire mieux, vis mieux</title>
+  <meta name="description" content="6 exercices de respiration guidés par un métronome à cloches. Du réveil au coucher : stress, sommeil, focus, énergie. Gratuit, sans compte, 100% privé." />
+  <meta name="theme-color" content="#070b14" />
+  <link rel="icon" type="image/x-icon" href="favicon.ico" sizes="any">
+  <link rel="icon" type="image/png" sizes="32x32" href="favicon-32x32.png">
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg: #070b14;
+      --card: #0f1524;
+      --border: #1a2236;
+      --cyan: #22d3ee;
+      --cyan-soft: #67e8f9;
+      --indigo: #818cf8;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --faint: #64748b;
+    }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, sans-serif;
+      line-height: 1.6;
+      overflow-x: hidden;
+    }
+
+    /* ─── Halo d'ambiance ─── */
+    .glow-bg {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      background:
+        radial-gradient(ellipse 600px 400px at 50% -100px, #164e6333, transparent),
+        radial-gradient(ellipse 500px 400px at 85% 110%, #312e8122, transparent);
+      z-index: 0;
+    }
+
+    .container { max-width: 960px; margin: 0 auto; padding: 0 24px; position: relative; z-index: 1; }
+
+    /* ─── Nav ─── */
+    nav {
+      position: sticky; top: 0; z-index: 20;
+      background: #070b14e6;
+      backdrop-filter: blur(12px);
+      border-bottom: 1px solid #141b2d;
+    }
+    .nav-inner {
+      max-width: 960px; margin: 0 auto; padding: 14px 24px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+    .nav-brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .nav-brand strong { color: #fff; font-size: 15px; letter-spacing: 0.08em; }
+    .nav-links { display: flex; align-items: center; gap: 22px; }
+    .nav-links a {
+      color: var(--faint); text-decoration: none; font-size: 13px; font-weight: 500;
+      transition: color 0.2s;
+    }
+    .nav-links a:hover { color: var(--cyan-soft); }
+    @media (max-width: 640px) { .nav-links a:not(.nav-cta) { display: none; } }
+    .nav-cta {
+      color: #fff !important;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      padding: 8px 16px; border-radius: 999px; font-size: 13px !important;
+      box-shadow: 0 4px 16px #0ea5e940;
+    }
+
+    /* ─── Hero ─── */
+    .hero { text-align: center; padding: 72px 0 56px; }
+    .hero h1 {
+      font-size: clamp(30px, 6vw, 46px);
+      font-weight: 700; color: #fff; letter-spacing: -0.02em;
+      margin: 26px 0 10px;
+    }
+    .hero h1 em { font-style: normal; color: var(--cyan-soft); }
+    .hero .tagline {
+      color: var(--indigo); font-size: 11px; letter-spacing: 0.35em;
+      text-transform: uppercase; margin-bottom: 22px;
+    }
+    .hero p.sub {
+      color: var(--muted); max-width: 480px; margin: 0 auto 34px; font-size: 16px;
+    }
+    .hero-actions { display: flex; gap: 14px; justify-content: center; flex-wrap: wrap; }
+
+    .btn-primary {
+      display: inline-block; text-decoration: none; color: #fff;
+      background: linear-gradient(135deg, #0ea5e9, #0284c7);
+      padding: 15px 30px; border-radius: 16px; font-weight: 600; font-size: 15px;
+      border: none; cursor: pointer;
+      box-shadow: 0 8px 28px #0ea5e940;
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 12px 34px #0ea5e955; }
+    .btn-ghost {
+      display: inline-block; text-decoration: none; color: var(--cyan-soft);
+      padding: 15px 26px; border-radius: 16px; font-weight: 500; font-size: 15px;
+      border: 1px solid #22d3ee33; transition: background 0.2s;
+    }
+    .btn-ghost:hover { background: #22d3ee10; }
+
+    /* ─── Animations du logo (celles du splash) ─── */
+    @keyframes drawRing { to { stroke-dashoffset: 0; } }
+    @keyframes drawWave { from { stroke-dashoffset: 220; } to { stroke-dashoffset: 0; } }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(16px); } to { opacity: 1; transform: none; } }
+    .anim { opacity: 0; animation: fadeUp 0.8s ease-out forwards; }
+
+    /* ─── Démo de respiration ─── */
+    .breath-demo {
+      margin: 56px auto 0; width: 200px; height: 200px;
+      position: relative; display: flex; align-items: center; justify-content: center;
+    }
+    .breath-circle {
+      position: absolute; inset: 0; border-radius: 50%;
+      background: radial-gradient(circle, #22d3ee26, #22d3ee08 70%);
+      border: 2px solid #22d3ee40;
+      box-shadow: 0 0 60px #22d3ee18;
+      animation: breathe 10s ease-in-out infinite;
+    }
+    @keyframes breathe {
+      0%, 100% { transform: scale(0.78); }
+      50%      { transform: scale(1.05); }
+    }
+    .breath-label { position: relative; font-size: 14px; letter-spacing: 0.2em; text-transform: uppercase; }
+    .breath-label span { position: absolute; left: 50%; transform: translateX(-50%); white-space: nowrap; }
+    .breath-in  { color: var(--cyan-soft); animation: labelIn 10s ease-in-out infinite; }
+    .breath-out { color: #5bd4e8; animation: labelOut 10s ease-in-out infinite; }
+    @keyframes labelIn  { 0% {opacity:1} 45% {opacity:1} 50% {opacity:0} 95% {opacity:0} 100% {opacity:1} }
+    @keyframes labelOut { 0% {opacity:0} 45% {opacity:0} 50% {opacity:1} 95% {opacity:1} 100% {opacity:0} }
+    .breath-hint { text-align: center; color: var(--faint); font-size: 12px; margin-top: -28px; }
+
+    /* ─── Sections ─── */
+    section { padding: 64px 0; }
+    .section-label {
+      color: var(--cyan); font-size: 11px; letter-spacing: 0.25em;
+      text-transform: uppercase; font-weight: 600; margin-bottom: 10px;
+    }
+    .section-title { color: #fff; font-size: clamp(22px, 4vw, 30px); font-weight: 700; letter-spacing: -0.01em; margin-bottom: 14px; }
+    .section-intro { color: var(--muted); max-width: 560px; margin-bottom: 36px; font-size: 15px; }
+
+    /* Cartes génériques */
+    .card {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 20px; padding: 24px;
+    }
+    .grid-2 { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 16px; }
+
+    /* Bienfaits */
+    .benefit-emoji { font-size: 28px; margin-bottom: 12px; }
+    .benefit h3 { color: #fff; font-size: 16px; font-weight: 600; margin-bottom: 6px; }
+    .benefit p { color: var(--muted); font-size: 13.5px; }
+    .benefit { transition: border-color 0.25s, transform 0.25s; }
+    .benefit:hover { border-color: #22d3ee44; transform: translateY(-3px); }
+
+    /* Exercices */
+    .exercise {
+      border-radius: 18px; padding: 20px;
+      background: var(--card); border: 1px solid;
+      transition: transform 0.2s;
+    }
+    .exercise:hover { transform: translateY(-3px); }
+    .ex-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+    .ex-emoji {
+      width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0;
+      display: flex; align-items: center; justify-content: center; font-size: 22px;
+    }
+    .exercise h3 { color: #fff; font-size: 15px; font-weight: 600; }
+    .exercise .ex-sub { color: var(--muted); font-size: 12.5px; margin-bottom: 10px; }
+    .ex-meta { display: flex; gap: 14px; font-size: 11.5px; color: var(--faint); }
+
+    /* Fonctionnalités app */
+    .feature h3 { color: #fff; font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+    .feature p { color: var(--muted); font-size: 13.5px; }
+
+    /* Installation */
+    .install-panel {
+      background: linear-gradient(145deg, #12182b, #1a1435);
+      border: 1px solid #2e2a55; border-radius: 24px; padding: 36px 28px;
+      text-align: center;
+    }
+    .install-steps { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; margin-top: 28px; text-align: left; }
+    .step-card { background: #0d1120; border: 1px solid var(--border); border-radius: 16px; padding: 18px; }
+    .step-card.recommended { border-color: #22d3ee66; box-shadow: 0 0 24px #22d3ee18; }
+    .step-card h4 { color: var(--cyan-soft); font-size: 13px; margin-bottom: 10px; display: flex; align-items: center; gap: 8px; }
+    .step-card ol { margin-left: 18px; color: var(--muted); font-size: 13px; }
+    .step-card ol li { margin-bottom: 5px; }
+    .badge-rec {
+      font-size: 9px; letter-spacing: 0.1em; background: #22d3ee22; color: var(--cyan-soft);
+      padding: 2px 8px; border-radius: 999px; text-transform: uppercase; font-weight: 600;
+    }
+    #installBtn { display: none; margin-top: 26px; }
+
+    /* Footer */
+    footer { border-top: 1px solid #141b2d; padding: 36px 0 48px; text-align: center; }
+    footer p { color: var(--faint); font-size: 12.5px; }
+    footer .disclaimer { color: #475569; font-size: 11px; margin-top: 10px; max-width: 440px; margin-left: auto; margin-right: auto; }
+
+    /* Reveal on scroll */
+    .reveal { opacity: 0; transform: translateY(18px); transition: opacity 0.7s ease, transform 0.7s ease; }
+    .reveal.visible { opacity: 1; transform: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      * { animation-duration: 0.01s !important; transition-duration: 0.01s !important; }
+    }
+  </style>
+</head>
+<body>
+  <div class="glow-bg"></div>
+
+  <!-- ═══ Navigation ═══ -->
+  <nav>
+    <div class="nav-inner">
+      <a class="nav-brand" href="#">
+        <!-- Logo miniature -->
+        <svg width="26" height="26" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+          <g stroke="#67e8f9" stroke-width="6.5" stroke-linecap="round">
+            <path d="M14.75 44 A48 48 0 0 1 105.25 44"/>
+            <path d="M105.25 76 A48 48 0 0 1 14.75 76"/>
+          </g>
+          <path d="M8 57 C22 42 38 42 54 56 C70 70 86 70 106 55" stroke="#7deaf5" stroke-width="5.5" stroke-linecap="round"/>
+          <path d="M8 70 C22 55 38 55 54 69 C70 83 86 83 106 68" stroke="#5bd4e8" stroke-width="5.5" stroke-linecap="round"/>
+        </svg>
+        <strong>AIR&nbsp;FITNESS</strong>
+      </a>
+      <div class="nav-links">
+        <a href="#bienfaits">Bienfaits</a>
+        <a href="#exercices">Exercices</a>
+        <a href="#installer">Installer</a>
+        <a class="nav-cta" href="index.html">Ouvrir l'app →</a>
+      </div>
+    </div>
+  </nav>
+
+  <!-- ═══ Hero ═══ -->
+  <header class="container hero">
+    <!-- Grand logo animé (comme au splash) -->
+    <div class="anim" style="animation-delay: 0.1s">
+      <svg width="130" height="130" viewBox="0 0 120 120" fill="none" aria-hidden="true">
+        <defs>
+          <filter id="heroHalo" x="-40%" y="-40%" width="180%" height="180%">
+            <feGaussianBlur stdDeviation="2.5"/>
+          </filter>
+        </defs>
+        <g filter="url(#heroHalo)" stroke="#22d3ee" stroke-width="8" stroke-linecap="round" opacity="0.4">
+          <path d="M14.75 44 A48 48 0 0 1 105.25 44" stroke-dasharray="166" stroke-dashoffset="166" style="animation: drawRing 1.1s 0.3s ease-out forwards"/>
+          <path d="M105.25 76 A48 48 0 0 1 14.75 76" stroke-dasharray="166" stroke-dashoffset="166" style="animation: drawRing 1.1s 0.3s ease-out forwards"/>
+        </g>
+        <g stroke="#67e8f9" stroke-width="6.5" stroke-linecap="round">
+          <path d="M14.75 44 A48 48 0 0 1 105.25 44" stroke-dasharray="166" stroke-dashoffset="166" style="animation: drawRing 1.1s 0.3s ease-out forwards"/>
+          <path d="M105.25 76 A48 48 0 0 1 14.75 76" stroke-dasharray="166" stroke-dashoffset="166" style="animation: drawRing 1.1s 0.3s ease-out forwards"/>
+        </g>
+        <path d="M8 57 C22 42 38 42 54 56 C70 70 86 70 106 55" stroke="#7deaf5" stroke-width="5.5" stroke-linecap="round" stroke-dasharray="150" stroke-dashoffset="150" style="animation: drawWave 1.4s 1s ease-out forwards"/>
+        <path d="M8 70 C22 55 38 55 54 69 C70 83 86 83 106 68" stroke="#5bd4e8" stroke-width="5.5" stroke-linecap="round" stroke-dasharray="150" stroke-dashoffset="150" style="animation: drawWave 1.4s 1.25s ease-out forwards"/>
+      </svg>
+    </div>
+
+    <p class="tagline anim" style="animation-delay: 0.7s">Souffle · Présence · Santé</p>
+    <h1 class="anim" style="animation-delay: 0.5s">Ton souffle est une<br/><em>télécommande</em> nerveuse</h1>
+    <p class="sub anim" style="animation-delay: 0.8s">
+      Air Fitness te guide avec un métronome à cloches : 6 exercices courts,
+      du réveil au coucher. Stress, sommeil, focus, énergie — deux minutes suffisent.
+    </p>
+    <div class="hero-actions anim" style="animation-delay: 1s">
+      <a class="btn-primary" href="index.html">Ouvrir l'application</a>
+      <a class="btn-ghost" href="#installer">📲 Installer sur mon tel</a>
+    </div>
+
+    <!-- Démo de cohéence cardiaque, sans rien installer -->
+    <div class="breath-demo anim" style="animation-delay: 1.2s" aria-hidden="true">
+      <div class="breath-circle"></div>
+      <div class="breath-label">
+        <span class="breath-in">Inspire</span>
+        <span class="breath-out">Expire</span>
+      </div>
+    </div>
+    <p class="breath-hint">Cohéence cardiaque · 5 secondes inspir, 5 secondes expire. Essaie, c'est déjà ça.</p>
+  </header>
+
+  <!-- ═══ Bienfaits ═══ -->
+  <section id="bienfaits" class="container">
+    <p class="section-label reveal">Pourquoi respirer consciemment ?</p>
+    <h2 class="section-title reveal">Le seul bouton d'arrêt d'urgence<br/>que tu emportes partout</h2>
+    <p class="section-intro reveal">
+      Tu respires 20 000 fois par jour sans y penser. En dirigeant volontairement
+      ce souffle, tu dialogues directement avec ton système nerveux. La science
+      le confirme, ton corps le sait déjà.
+    </p>
+
+    <div class="grid-2">
+      <div class="card benefit reveal">
+        <div class="benefit-emoji">😌</div>
+        <h3>Stress &amp; anxiété</h3>
+        <p>Quand l'expiration devient plus longue que l'inspiration, le système
+        parasympathique prend le relais : le rythme cardiaque ralentit, les pensées
+        se posent. Un réflexe apaisant disponible à tout moment.</p>
+      </div>
+      <div class="card benefit reveal">
+        <div class="benefit-emoji">😴</div>
+        <h3>Sommeil</h3>
+        <p>Le 4-7-8 est surnommé « le tranquillisant naturel » : la longue expiration
+        prépare le corps à lâcher prise. Quelques cycles au lit, et la nuit arrive
+        plus vite.</p>
+      </div>
+      <div class="card benefit reveal">
+        <div class="benefit-emoji">🎯</div>
+        <h3>Focus &amp; clarté</h3>
+        <p>La Box Breathing — quatre temps égaux — est utilisée par les Navy SEALs
+        avant les missions. Un cerveau oxygéné régulièrement reste calme et alerte,
+        même sous pression.</p>
+      </div>
+      <div class="card benefit reveal">
+        <div class="benefit-emoji">⚡</div>
+        <h3>Énergie</h3>
+        <p>À l'inverse, inspirer plus longtemps qu'on expire réveille en douceur :
+        c'est un café sans caféine, idéal au réveil ou quand le brouillard
+        de 14 h s'installe.</p>
+      </div>
+      <div class="card benefit reveal">
+        <div class="benefit-emoji">💗</div>
+        <h3>Cœur &amp; équilibre</h3>
+        <p>Respirer autour de 6 cycles par minute maximise la variabilité de la
+        fréquence cardiaque (VFC) — un marqueur reconnu de la capacité du corps
+        à s'adapter au stress.</p>
+      </div>
+      <div class="card benefit reveal">
+        <div class="benefit-emoji">⏱️</div>
+        <h3>Deux minutes, vraiment</h3>
+        <p>Pas besoin d'une heure de méditation. Des cycles courts et réguliers
+        suffisent pour ressentir un effet. Le plus dur n'est pas l'exercice :
+        c'est de penser à le faire. L'app s'en charge.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Exercices ═══ -->
+  <section id="exercices" class="container">
+    <p class="section-label reveal">Dans l'application</p>
+    <h2 class="section-title reveal">6 exercices, une journée entière</h2>
+    <p class="section-intro reveal">
+      Chaque exercice est guidé phase par phase, avec son ratio, ses instructions
+      et son ambiance sonore. Voici ce qui t'attend.
+    </p>
+
+    <div class="grid-3">
+      <div class="exercise reveal" style="border-color: #38bdf830">
+        <div class="ex-head">
+          <div class="ex-emoji" style="background: #38bdf815">⬜</div>
+          <div><h3>Box Breathing</h3><span class="ex-meta" style="display:block">Débutant · 4–6 min</span></div>
+        </div>
+        <p class="ex-sub">Gestion du stress &amp; performance. La technique tactique des forces spéciales.</p>
+        <div class="ex-meta"><span>⏱ 4–4–4–4</span><span>6 cycles</span></div>
+      </div>
+
+      <div class="exercise reveal" style="border-color: #a78bfa30">
+        <div class="ex-head">
+          <div class="ex-emoji" style="background: #a78bfa15">🌙</div>
+          <div><h3>4-7-8</h3><span class="ex-meta" style="display:block">Débutant · 2–3 min</span></div>
+        </div>
+        <p class="ex-sub">Le tranquillisant naturel. Expiration longue, sommeil qui arrive.</p>
+        <div class="ex-meta"><span>⏱ 4–7–8</span><span>4 cycles</span></div>
+      </div>
+
+      <div class="exercise reveal" style="border-color: #2dd4bf30">
+        <div class="ex-head">
+          <div class="ex-emoji" style="background: #2dd4bf15">💗</div>
+          <div><h3>Cohéence cardiaque</h3><span class="ex-meta" style="display:block">Débutant · 5 min</span></div>
+        </div>
+        <p class="ex-sub">Équilibre &amp; VFC. Le classique 5–5, trois fois par jour.</p>
+        <div class="ex-meta"><span>⏱ 5–5</span><span>30 cycles</span></div>
+      </div>
+
+      <div class="exercise reveal" style="border-color: #f59e0b30">
+        <div class="ex-head">
+          <div class="ex-emoji" style="background: #f59e0b15">⚡</div>
+          <div><h3>Respiration tonique</h3><span class="ex-meta" style="display:block">Débutant · 2–3 min</span></div>
+        </div>
+        <p class="ex-sub">Anti-fatigue &amp; éveil. Un café sans caféine, sans la culpabilité.</p>
+        <div class="ex-meta"><span>⏱ 4–2</span><span>10 cycles</span></div>
+      </div>
+
+      <div class="exercise reveal" style="border-color: #fb923c30">
+        <div class="ex-head">
+          <div class="ex-emoji" style="background: #fb923c15">🌅</div>
+          <div><h3>Souffle du réveil</h3><span class="ex-meta" style="display:block">Débutant · 3–4 min</span></div>
+        </div>
+        <p class="ex-sub">Démarrer la journée en douceur, encore au bord du lit.</p>
+        <div class="ex-meta"><span>⏱ 4–2–3</span><span>8 cycles</span></div>
+      </div>
+
+      <div class="exercise reveal" style="border-color: #fbbf2430">
+        <div class="ex-head">
+          <div class="ex-emoji" style="background: #fbbf2415">🔥</div>
+          <div><h3>Activation 3–3</h3><span class="ex-meta" style="display:block">Intermédiaire · 2 min</span></div>
+        </div>
+        <p class="ex-sub">Tonicité rapide avant l'entraînement ou une réunion.</p>
+        <div class="ex-meta"><span>⏱ 3–3</span><span>12 cycles</span></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ L'app ═══ -->
+  <section id="app" class="container">
+    <p class="section-label reveal">L'application</p>
+    <h2 class="section-title reveal">Petite, discrète, à toi</h2>
+    <p class="section-intro reveal">
+      Pas de compte à créer, pas de pub, pas de données qui partent dans le cloud.
+      Tout vit sur ton téléphone.
+    </p>
+
+    <div class="grid-3">
+      <div class="card feature reveal">
+        <div class="benefit-emoji">🔔</div>
+        <h3>Métronome à cloches</h3>
+        <p>Trois sonorités — bol tibétain grave, médium, carillon aigu — plus un
+        mode Mix qui chante ta respiration : aigu à l'inspire, grave à l'expire.</p>
+      </div>
+      <div class="card feature reveal">
+        <div class="benefit-emoji">🎚️</div>
+        <h3>Tout se règle</h3>
+        <p>Tempo de 30 à 250 bpm, volume au curseur, vibrations discrètes à chaque
+        changement de phase. Ton rythme, vraiment.</p>
+      </div>
+      <div class="card feature reveal">
+        <div class="benefit-emoji">📓</div>
+        <h3>Journal &amp; séries</h3>
+        <p>Chaque session terminée est notée. Les jours s'enchaînent, la série
+        grandit — la régularité fait tout le travail.</p>
+      </div>
+      <div class="card feature reveal">
+        <div class="benefit-emoji">🔒</div>
+        <h3>100 % privé</h3>
+        <p>Aucun compte, aucune inscription, rien n'est envoyé nulle part.
+        Ton journal reste dans ton appareil, point.</p>
+      </div>
+      <div class="card feature reveal">
+        <div class="benefit-emoji">📴</div>
+        <h3>Sans écran, sans distraction</h3>
+        <p>Installe-la sur ton écran d'accueil : elle s'ouvre en plein écran,
+        sans onglets ni notifications pour te voler ton souffle.</p>
+      </div>
+      <div class="card feature reveal">
+        <div class="benefit-emoji">🆓</div>
+        <h3>Gratuit, pour toujours</h3>
+        <p>Un projet passion, offert. Si ça t'aide, fais-le tourner autour
+        de toi — c'est la plus belle des récompenses.</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Installation ═══ -->
+  <section id="installer" class="container">
+    <div class="install-panel reveal">
+      <p class="section-label">Télécharger</p>
+      <h2 class="section-title">Emporte Air Fitness partout</h2>
+      <p class="section-intro" style="margin: 0 auto 8px">
+        Installe-la en dix secondes, sans store ni téléchargement lourd.
+      </p>
+
+      <a class="btn-primary" href="index.html">Ouvrir l'application d'abord →</a>
+
+      <!-- Bouton natif (apparaît si le navigateur le propose) -->
+      <div id="installBtn">
+        <button class="btn-primary" onclick="promptInstall()">📲 Installer maintenant</button>
+        <p style="color: var(--faint); font-size: 12px; margin-top: 10px">Installation directe, proposée par ton navigateur</p>
+      </div>
+
+      <div class="install-steps">
+        <div class="step-card" id="card-ios">
+          <h4>🍏 iPhone / iPad</h4>
+          <ol>
+            <li>Ouvre cette page dans <strong>Safari</strong></li>
+            <li>Touche le bouton <strong>Partager</strong> <span style="white-space:nowrap">(square ⬆️)</span></li>
+            <li>Choisis <strong>« Sur l'écran d'accueil »</strong></li>
+            <li>Puis <strong>Ajouter</strong></li>
+          </ol>
+        </div>
+        <div class="step-card" id="card-android">
+          <h4>🤖 Android</h4>
+          <ol>
+            <li>Ouvre la page dans <strong>Chrome</strong></li>
+            <li>Touche le menu <strong>⋮</strong> en haut à droite</li>
+            <li>Choisis <strong>« Installer l'application »</strong></li>
+          </ol>
+        </div>
+        <div class="step-card" id="card-desktop">
+          <h4>💻 Ordinateur</h4>
+          <ol>
+            <li>Ouvre la page dans Chrome ou Edge</li>
+            <li>Clique l'icône <strong>⊕ / 📥</strong> dans la barre d'adresse</li>
+            <li>Choisis <strong>« Installer »</strong></li>
+          </ol>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ Footer ═══ -->
+  <footer>
+    <div class="container">
+      <svg width="34" height="34" viewBox="0 0 120 120" fill="none" aria-hidden="true" style="margin-bottom: 14px">
+        <g stroke="#67e8f9" stroke-width="6.5" stroke-linecap="round">
+          <path d="M14.75 44 A48 48 0 0 1 105.25 44"/>
+          <path d="M105.25 76 A48 48 0 0 1 14.75 76"/>
+        </g>
+        <path d="M8 57 C22 42 38 42 54 56 C70 70 86 70 106 55" stroke="#7deaf5" stroke-width="5.5" stroke-linecap="round"/>
+        <path d="M8 70 C22 55 38 55 54 69 C70 83 86 83 106 68" stroke="#5bd4e8" stroke-width="5.5" stroke-linecap="round"/>
+      </svg>
+      <p>Air Fitness — <em style="color: var(--indigo)">Souffle · Présence · Santé</em></p>
+      <p style="margin-top: 8px">
+        <a href="index.html" style="color: var(--cyan-soft); text-decoration: none">Ouvrir l'application</a>
+      </p>
+      <p class="disclaimer">
+        Air Fitness accompagne la détente et le bien-être au quotidien.
+        En cas de problème de santé — respiratoire, cardiaque ou psychologique —
+        l'avis d'un professionnel reste essentiel.
+      </p>
+    </div>
+  </footer>
+
+  <script>
+    // ─── Lien vers l'app (ajuste si besoin) ───
+    // Page à la racine du repo, l'app est dans index.html :
+    const APP_URL = "index.html";
+    document.querySelectorAll('a[href="index.html"]').forEach(a => a.href = APP_URL);
+
+    // ─── Installation native PWA (Android / Chrome / Edge) ───
+    let deferredPrompt = null;
+    const installBtn = document.getElementById("installBtn");
+
+    window.addEventListener("beforeinstallprompt", (e) => {
+      e.preventDefault();
+      deferredPrompt = e;
+      installBtn.style.display = "block";
+    });
+
+    function promptInstall() {
+      if (!deferredPrompt) return;
+      deferredPrompt.prompt();
+      deferredPrompt.userChoice.finally(() => { deferredPrompt = null; });
+    }
+
+    // ─── Détection de plateforme : la carte correspondante est mise en avant ───
+    (function recommendPlatform() {
+      const ua = navigator.userAgent;
+      const isIOS = /iphone|ipad|ipod/i.test(ua) ||
+        (navigator.platform === "MacIntel" && navigator.maxTouchPoints > 1);
+      const isAndroid = /android/i.test(ua);
+      const isDesktop = !isIOS && !isAndroid;
+
+      const id = isIOS ? "card-ios" : isAndroid ? "card-android" : "card-desktop";
+      const card = document.getElementById(id);
+      if (card) {
+        card.classList.add("recommended");
+        const badge = document.createElement("span");
+        badge.className = "badge-rec";
+        badge.textContent = "Ton appareil";
+        card.querySelector("h4").appendChild(badge);
+      }
+    })();
+
+    // ─── Apparition douce au scroll ───
+    const io = new IntersectionObserver((entries) => {
+      entries.forEach((en) => {
+        if (en.isIntersecting) {
+          en.target.classList.add("visible");
+          io.unobserve(en.target);
+        }
+      });
+    }, { threshold: 0.12 });
+    document.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+  </script>
+</body>
+</html>
